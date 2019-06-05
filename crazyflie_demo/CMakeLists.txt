@@ -5,7 +5,9 @@ project(crazyflie_demo)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
+	message_generation
+	roscpp
+	tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -42,11 +44,11 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
+add_message_files(
+   FILES
+   Trajectory.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -63,10 +65,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   crazyflie_demo
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -78,11 +80,13 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES crazyflie_demo
- CATKIN_DEPENDS roscpp
-#  DEPENDS system_lib
-)
+	#  INCLUDE_DIRS include
+	#  LIBRARIES crazyflie_demo
+	CATKIN_DEPENDS roscpp
+	message_runtime
+	tf
+	#  DEPENDS system_lib
+	)
 
 ###########
 ## Build ##
@@ -91,8 +95,8 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
+	${catkin_INCLUDE_DIRS}
+	)
 
 ## Declare a cpp library
 # add_library(crazyflie_demo
@@ -101,15 +105,21 @@ include_directories(
 
 # Declare a cpp executable
 add_executable(quadrotor_teleop src/quadrotor_teleop.cpp)
+add_executable(publish_odometry src/publish_odometry)
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(crazyflie_demo_node crazyflie_demo_generate_messages_cpp)
+add_dependencies(publish_odometry crazyflie_demo_generate_messages_cpp)
 
 # Specify libraries to link a library or executable target against
 target_link_libraries(quadrotor_teleop
-  ${catkin_LIBRARIES}
-)
+	${catkin_LIBRARIES}
+	)
+
+target_link_libraries(publish_odometry
+	${catkin_LIBRARIES}
+	)
 
 #############
 ## Install ##

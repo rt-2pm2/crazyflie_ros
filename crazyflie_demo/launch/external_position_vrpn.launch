@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="uri" default="radio://0/20/2M/E7E7E7E7E7" /> <!--Adjust this parameter-->
+  <arg name="uri" default="radio://0/100/2M/E7E7E7E7E7" /> <!--Adjust this parameter-->
   <arg name="frame" default="cf1" /> <!--For OptiTrack users: frame name should match the Rigid-body name on Motive-->
-  <arg name="ip" default="192.168.1.198" /> <!--Adjust this parameter-->
+  <arg name="ip" default="192.168.254.1" /> <!--Adjust this parameter-->
   <arg name="port" default="3883" />
 
   <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
@@ -12,7 +12,7 @@
     <node pkg="crazyflie_driver" type="crazyflie_add" name="crazyflie_add" output="screen">
       <param name="uri" value="$(arg uri)" />
       <param name="tf_prefix" value="cf1" />
-      <param name="enable_logging" value="False" /> <!--Logging is disabled to reduce unnecessary bandwith consumption-->
+      <param name="enable_logging" value="False" />
       <param name="enable_logging_imu" value="False" />
       <param name="enable_logging_temperature" value="False" />
       <param name="enable_logging_magnetic_field" value="False" />
@@ -20,15 +20,17 @@
       <param name="enable_logging_battery" value="False" />
       <param name="enable_logging_packets" value="False" />
       <rosparam>
-        genericLogTopics: ["log1"]
+        genericLogTopics: ["logKalman"]
         genericLogTopicFrequencies: [10]
-        genericLogTopic_log1_Variables: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
+        genericLogTopic_logKalman_Variables: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
       </rosparam>
     </node>
 
-    <node name="pose" pkg="crazyflie_demo" type="publish_external_position_vrpn.py" output="screen"> 
+    <node name="pose" pkg="crazyflie_demo" type="publish_external_position_luigi.py" output="screen"> 
       <param name="topic" value="/cf1/vrpn_client_node/cf1/pose" />
     </node>
+
+	<node pkg="tf" type="static_transform_publisher" name="baselink_broadcaster" args="0 0 0 0 0 0 1 $(arg frame) /cf1/base_link 100" />
 
     <!--Run vrpn client-->
     <!--For OptiTrack users: make sure you edit vrpn_client_ros.cpp file to adjust axes transformation-->
@@ -36,7 +38,7 @@
     <rosparam subst_value="true">
       server: $(arg ip)
       port: $(arg port)
-      update_frequency: 100.0
+      update_frequency: 120.0
       frame_id: /world
       child_frame_id: $(arg frame)
       use_server_time: false
@@ -45,4 +47,6 @@
     </rosparam>
     </node>
   </group>
+
+  <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/log_kalman /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
 </launch>

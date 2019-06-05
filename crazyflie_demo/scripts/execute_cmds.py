@@ -1,51 +1,57 @@
 #!/usr/bin/env python
 
+import argparse
 import rospy
-import crazyflie
-import time
+import tf_conversions
+from crazyflie_driver.msg import FullState
+import geometry_msgs
 import uav_trajectory
 
+
 if __name__ == '__main__':
-    rospy.init_node('Node_commander')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("trajectory", type=str, help="CSV file containing trajectory")
+    args = parser.parse_args()
 
-    cf = crazyflie.Crazyflie("crazyflie", "/vicon/crazyflie/crazyflie")
+    rospy.init_node('full_state')
 
-    while (cf.getParam("commander/enHighLevel") == 1): 
-        cf.setParam("commander/enHighLevel", 1)
+    traj = uav_trajectory.Trajectory()
+    traj.loadcsv(args.trajectory)
 
-    while (cf.getParam("stabilizer/estimator") == 2):
-    cf.setParam("stabilizer/estimator", 2) # Use EKF
-    cf.setParam("stabilizer/controller", 2) # Use mellinger controller
+    rate = rospy.Rate(100)
 
-    # reset kalman
-    cf.setParam("kalman/resetEstimation", 1)
+    msg = FullState()
+    msg.header.seq = 0
+    msg.header.stamp = rospy.Time.now()
+    msg.header.frame_id = "/world"
 
-    # cf.takeoff(targetHeight = 0.5, duration = 2.0)
-    # time.sleep(3.0)
+    pub = rospy.Publisher("/crazyflie/cmd_full_state", FullState, queue_size=1)
+    start_time = rospy.Time.now()
 
-    # cf.goTo(goal = [0.5, 0.0, 0.0], yaw=0.2, duration = 2.0, relative = True)
-    # time.sleep(3.0)
+    while not rospy.is_shutdown():
+        msg.header.seq += 1
+        msg.header.stamp = rospy.Time.now()
+        t = (msg.header.stamp - start_time).to_sec()
+        print(t)
+        if t > traj.duration:
+            break
+            # t = traj.duration
 
-    # cf.land(targetHeight = 0.0, duration = 2.0)
+        e = traj.eval(t)
 
-    traj1 = uav_trajectory.Trajectory()
-    traj1.loadcsv("takeoff.csv")
+        msg.pose.position.x    = e.pos[0]
+        msg.pose.position.y    = e.pos[1]
+        msg.pose.position.z    = e.pos[2]
+        msg.twist.linear.x     = e.vel[0]
+        msg.twist.linear.y     = e.vel[1]
+        msg.twist.linear.z     = e.vel[2]
+        msg.acc.x              = e.acc[0]
+        msg.acc.y              = e.acc[1]
+        msg.acc.z              = e.acc[2]
+        msg.pose.orientation   = geometry_msgs.msg.Quaternion(*tf_conversions.transformations.quaternion_from_euler(0, 0, e.yaw))
+        msg.twist.angular.x    = e.omega[0]
+        msg.twist.angular.y    = e.omega[1]
+        msg.twist.angular.z    = e.omega[2]
 
-    traj2 = uav_trajectory.Trajectory()
-    traj2.loadcsv("figure8.csv")
-
-    print(traj1.duration)
-
-    cf.uploadTrajectory(0, 0, traj1)
-    cf.uploadTrajectory(1, len(traj1.polynomials), traj2)
-
-    cf.startTrajectory(0, timescale=1.0)
-    time.sleep(traj1.duration * 2.0)
-
-    cf.startTrajectory(1, timescale=2.0)
-    time.sleep(traj2.duration * 2.0)
-
-    cf.startTrajectory(0, timescale=1.0, reverse=True)
-    time.sleep(traj1.duration * 1.0)
-
-    cf.stop()
+        pub.publish(msg)
+        rate.sleep()
