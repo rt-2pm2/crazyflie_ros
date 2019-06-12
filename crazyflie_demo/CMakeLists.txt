@@ -105,7 +105,7 @@ include_directories(
 
 # Declare a cpp executable
 add_executable(quadrotor_teleop src/quadrotor_teleop.cpp)
-add_executable(publish_odometry src/publish_odometry)
+add_executable(publish_odometry src/publish_odometry.cpp)
 
 
 ## Add cmake target dependencies of the executable/library
