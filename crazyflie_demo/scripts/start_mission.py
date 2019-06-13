@@ -29,7 +29,7 @@ ghost_pub = rospy.Publisher('ghost_trajectory', Trajectory, queue_size=10)
 
 def rep_trajectory(trajectory, start_position, freq):
         timeSpan = trajectory.duration; 
-        
+
         r = rospy.Rate(freq)
 
         print("Running at freq. = ", r)
@@ -46,7 +46,7 @@ def rep_trajectory(trajectory, start_position, freq):
         while (curr_time < end_time):
             # Evaluate the trajectory
             rep_trj = trajectory.eval(curr_time - start_time)
-            
+
             msg.px = rep_trj.pos[0]
             msg.py = rep_trj.pos[1]
             msg.pz = rep_trj.pos[2]
@@ -74,7 +74,9 @@ def rep_trajectory(trajectory, start_position, freq):
             r.sleep()
             # Take the time
             curr_time = rospy.get_time()
- if __name__ == '__main__':
+
+
+if __name__ == '__main__':
     rospy.init_node('Node_commander')
 
     print("Starting Node Commander")
@@ -84,8 +86,8 @@ def rep_trajectory(trajectory, start_position, freq):
         trj_file = rospy.get_param(traj_file)
     else:
         rospy.signal_shutdown("Trjectory file not found!")
- 
-    
+
+
     frequency = rospy.get_param('freq_ghost', 30.0);
 
 
