@@ -24,14 +24,27 @@ static float trj_vel[3];
 static float trj_acc[3];
 static float euler[3];
 
+// =======================================================
+// ------------------------ GHOST ------------------------
 // Odometry: quaternion
-static geometry_msgs::Quaternion odom_quat;
+static geometry_msgs::Quaternion ghost_odom_quat;
 
 // Odometry: TF 
-static geometry_msgs::TransformStamped odom_trans;
+static geometry_msgs::TransformStamped ghost_odom_trans;
 
 // Odometry Topic
-static nav_msgs::Odometry odom;
+static nav_msgs::Odometry ghost_odom;
+
+// =======================================================
+// ------------------------ REAL  ------------------------
+// Odometry: quaternion
+
+// Odometry: TF 
+
+// Odometry Topic
+
+
+// ===========================================================
 
 // CALLBACK ---------------------------------------------------------------------
 void trj_callback(const boost::shared_ptr<crazyflie_demo::Trajectory const>& msg);
@@ -51,19 +64,19 @@ int main(int argc, char** argv) {
 	ROS_INFO("Publishing at %.3f", nodeRate);
 
 	// OUTPUTS:
-	static ros::Publisher odom_pub;
-	static tf::TransformBroadcaster odom_broadcaster;
-
+	ros::Publisher ghost_odom_pub;
+	tf::TransformBroadcaster ghost_odom_broadcaster;
+    
 	// 1) Advertise topic
-	odom_pub = nh.advertise<nav_msgs::Odometry> ("vehicle_od", 20);
+	ghost_odom_pub = nh.advertise<nav_msgs::Odometry> ("ghost_vehicle_od", 20);
 
 	// Initialize the header part of the odometry TF packet 
-	odom_trans.header.frame_id = "odom";
-	odom_trans.child_frame_id = "base_link";
+	ghost_odom_trans.header.frame_id = "world";
+	ghost_odom_trans.child_frame_id = "ghost_cf1";
 
 	// Initialize the header part of the odometry topic message
-	odom.header.frame_id = "odom";
-	odom.child_frame_id = "base_link";
+	ghost_odom.header.frame_id = "world";
+	ghost_odom.child_frame_id = "ghost_cf1";
 
 	// INPUT
 	// Subscribe to the topic produced by the node sending the trajectory
@@ -76,9 +89,10 @@ int main(int argc, char** argv) {
 		ros::spinOnce();
 	
 		// Send the transform
-		odom_broadcaster.sendTransform(odom_trans);
+		ghost_odom_broadcaster.sendTransform(ghost_odom_trans);
+
 		// Pubblish the odometry message
-		odom_pub.publish(odom);
+		ghost_odom_pub.publish(ghost_odom);
 		r.sleep();
 	}
 }
@@ -110,31 +124,31 @@ void trj_callback(const boost::shared_ptr<crazyflie_demo::Trajectory const>& msg
 	euler[2] = msg->y;
 
 	// Update Tranformation Message	
-	odom_trans.header.stamp = current_time;
+	ghost_odom_trans.header.stamp = current_time;
 	// Update the odometry transformation packet with
 	// the information received via ROS topic
-	odom_quat = tf::createQuaternionMsgFromRollPitchYaw(euler[0], 
+	ghost_odom_quat = tf::createQuaternionMsgFromRollPitchYaw(euler[0], 
 			euler[1], euler[2]);
 
 	// Position
-	odom_trans.transform.translation.x = trj_pos[0];
-	odom_trans.transform.translation.y = trj_pos[1];
-	odom_trans.transform.translation.z = trj_pos[2];
+	ghost_odom_trans.transform.translation.x = trj_pos[0];
+	ghost_odom_trans.transform.translation.y = trj_pos[1];
+	ghost_odom_trans.transform.translation.z = trj_pos[2];
 	// Orientation
-	odom_trans.transform.rotation = odom_quat;
+	ghost_odom_trans.transform.rotation = ghost_odom_quat;
 
 	// Update Topic Message
-	odom.header.stamp = current_time;
+	ghost_odom.header.stamp = current_time;
 	// Pose part of the odometry message
-	odom.pose.pose.position.x = trj_pos[0];
-	odom.pose.pose.position.y = trj_pos[1];
-	odom.pose.pose.position.z = trj_pos[2];
-	odom.pose.pose.orientation = odom_quat;
+	ghost_odom.pose.pose.position.x = trj_pos[0];
+	ghost_odom.pose.pose.position.y = trj_pos[1];
+	ghost_odom.pose.pose.position.z = trj_pos[2];
+	ghost_odom.pose.pose.orientation = ghost_odom_quat;
 
 	// Twist part of the odometry message 
-	odom.twist.twist.linear.x = trj_vel[0];
-	odom.twist.twist.linear.y = trj_vel[1];
-	odom.twist.twist.linear.z = trj_vel[2];
+	ghost_odom.twist.twist.linear.x = trj_vel[0];
+	ghost_odom.twist.twist.linear.y = trj_vel[1];
+	ghost_odom.twist.twist.linear.z = trj_vel[2];
 
 }
 
