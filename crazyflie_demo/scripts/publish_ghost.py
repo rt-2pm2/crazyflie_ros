@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# This script loads a trajectory file and simulates the execution publishing a 
+# custom trajectory message that is converted in odometry by another node
+
 import rospy
 import crazyflie
 import time
@@ -80,4 +83,4 @@ if __name__ == '__main__':
     print("Trajecotry duration: ", traj.duration)
 
     t = Thread(target=rep_trajectory, args=(traj,[0,0,0], frequency)).start()
-
+ 
