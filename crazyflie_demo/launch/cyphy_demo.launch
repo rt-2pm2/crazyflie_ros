@@ -21,9 +21,9 @@
       <param name="enable_logging_packets" value="False" />
       <param name="enable_logging_pose" value="True" /> 
       <rosparam>
-        genericLogTopics: ["logKalman"]
-        genericLogTopicFrequencies: [0]
-        genericLogTopic_logKalman_Variables: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
+        genericLogTopics: ["logEkfMocap"]
+        genericLogTopicFrequencies: [10]
+	genericLogTopic_logEkfMocap_Variables: ["ekf_mocap.x", "ekf_mocap.y", "ekf_mocap.z", "ekf_mocap.q0", "ekf_mocap.q1", "ekf_mocap.q2"]
       </rosparam>
     </node>
 
@@ -59,7 +59,7 @@
     <rosparam subst_value="true">
       server: $(arg ip)
       port: $(arg port)
-      update_frequency: 120.0
+      update_frequency: 360.0
       frame_id: /world
       child_frame_id: $(arg frame)
       use_server_time: false
@@ -72,12 +72,12 @@
   
     <!-- =================================================================================================
         Visualization with RVIZ 
-    -->
+     
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find crazyflie_demo)/launch/cyphy_rviz.rviz" /> 
-
+-->
     <!-- =================================================================================================
         Bag recording 
     -->
-  <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/log_kalman /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
+  <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/log_kalman /cf1/logEkfMocap /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
 
 </launch>
