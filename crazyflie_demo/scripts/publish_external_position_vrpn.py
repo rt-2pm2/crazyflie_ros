@@ -53,8 +53,13 @@ def onNewTransform(pose):
         msg.point.x = x
         msg.point.y = y
         msg.point.z = z
+        ## Publish the position message
         pub.publish(msg)
+
+        ## Publish the pose message
+        pub_pose.publish(pose)
     
+        ## Compose the Transform message
         explicit_quat = [quat.x, quat.y, quat.z, quat.w]
         euler = tf.transformations.euler_from_quaternion(explicit_quat)
         quat_tf = tf.transformations.quaternion_from_euler(euler[0], euler[1], euler[2]) 
@@ -122,7 +127,8 @@ if __name__ == '__main__':
     opti_odom.header.frame_id = "world"
 
     # Publishers
-    pub = rospy.Publisher("external_position", PointStamped, queue_size=1)
+    pub = rospy.Publisher("external_position", PointStamped, queue_size=2)
+    pub_pose = rospy.Publisher("external_pose", PoseStamped, queue_size=2)
     opti_odom_pub = rospy.Publisher("opti_odom", Odometry, queue_size = 3)
 
         
