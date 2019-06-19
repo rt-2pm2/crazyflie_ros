@@ -81,9 +81,10 @@ if __name__ == '__main__':
 
     print("Starting Node Commander")
 
-    traj_file = rospy.search_param('file')
-    if (traj_file):
-        trj_file = rospy.get_param(traj_file)
+    file_name = rospy.search_param('trajectory_file')
+    if (file_name):
+        trj_file = rospy.get_param(file_name) 
+        print("Trajectory file found! ", trj_file)
     else:
         rospy.signal_shutdown("Trjectory file not found!")
 
@@ -96,8 +97,8 @@ if __name__ == '__main__':
     while (cf.getParam("commander/enHighLevel") != 1): 
         cf.setParam("commander/enHighLevel", 1)
 
-    while (cf.getParam("stabilizer/estimator") != 2):
-        cf.setParam("stabilizer/estimator", 2) # 1)Complementary 2)EKF
+    while (cf.getParam("stabilizer/estimator") != 3):
+        cf.setParam("stabilizer/estimator", 3) # 1)Complementary 2)EKF 3)USC
 
     while (cf.getParam("stabilizer/controller") != 2):
         cf.setParam("stabilizer/controller", 2) # 1)PID  2)Mellinger 
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 
     print("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
-    traj.loadcsv(traj_file) 
+    traj.loadcsv(trj_file) 
     cf.uploadTrajectory(0, 0, traj)
     print("Trajectory duration: ", traj.duration)
     time.sleep(2)
