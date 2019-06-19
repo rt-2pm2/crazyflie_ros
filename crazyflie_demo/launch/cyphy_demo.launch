@@ -23,7 +23,7 @@
       <rosparam>
         genericLogTopics: ["logEkfMocap"]
         genericLogTopicFrequencies: [10]
-	genericLogTopic_logEkfMocap_Variables: ["ekf_mocap.x", "ekf_mocap.y", "ekf_mocap.z", "ekf_mocap.q0", "ekf_mocap.q1", "ekf_mocap.q2"]
+        genericLogTopic_logEkfMocap_Variables: ["ekf_mocap.x", "ekf_mocap.y", "ekf_mocap.z", "ekf_mocap.q0", "ekf_mocap.q1", "ekf_mocap.q2"]
       </rosparam>
     </node>
 
