@@ -75,6 +75,7 @@
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(find crazyflie_demo)/launch/cyphy_rviz.rviz" /> 
 -->
 
+    -->
     <!-- =================================================================================================
         Bag recording 
     -->
