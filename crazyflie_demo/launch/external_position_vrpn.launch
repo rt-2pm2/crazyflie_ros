@@ -20,9 +20,10 @@
       <param name="enable_logging_battery" value="False" />
       <param name="enable_logging_packets" value="False" />
       <rosparam>
-        genericLogTopics: ["logKalman"]
-        genericLogTopicFrequencies: [10]
+        genericLogTopics: ["logKalman", "logEkfMocap"]
+        genericLogTopicFrequencies: [0, 10]
         genericLogTopic_logKalman_Variables: ["stateEstimate.x", "stateEstimate.y", "stateEstimate.z"]
+	genericLogTopic_logEkfMocap_Variables: ["ekf_mocap.x", "ekf_mocap.y", "ekf_mocap.z", "ekf_mocap.q0", "ekf_mocap.q1", "ekf_mocap.q2"]
       </rosparam>
     </node>
 
@@ -46,7 +47,7 @@
     <rosparam subst_value="true">
       server: $(arg ip)
       port: $(arg port)
-      update_frequency: 120.0
+      update_frequency: 360.0
       frame_id: /world
       child_frame_id: $(arg frame)
       use_server_time: false
@@ -56,5 +57,5 @@
     </node>
   </group>
 
-  <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/log_kalman /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
+  <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/logKalman /cf1/logEkfMocap /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
 </launch>
