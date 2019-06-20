@@ -1,6 +1,6 @@
-[submodule "crazyflie_cpp"]
-	path = crazyflie_cpp
-	url = git@github.com:rt-2pm2/crazyflie_cpp.git
 [submodule "crazyflie_tools"]
 	path = crazyflie_tools
 	url = https://github.com/whoenig/crazyflie_tools
+[submodule "crazyflie_cpp"]
+	path = crazyflie_cpp
+	url = https://github.com/rt-2pm2/crazyflie_cpp.git
