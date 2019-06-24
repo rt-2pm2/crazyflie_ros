@@ -94,18 +94,6 @@ if __name__ == '__main__':
 
     cf = crazyflie.Crazyflie("cf1", "/tf")
 
-    while (cf.getParam("commander/enHighLevel") != 1): 
-        cf.setParam("commander/enHighLevel", 1)
-
-    while (cf.getParam("stabilizer/estimator") != 3):
-        cf.setParam("stabilizer/estimator", 3) # 1)Complementary 2)EKF 3)USC
-
-    while (cf.getParam("stabilizer/controller") != 2):
-        cf.setParam("stabilizer/controller", 2) # 1)PID  2)Mellinger 
-    time.sleep(3)
-
-    cf.setParam("kalman/resetEstimation", 1)
-    cf.setParam("kalman/resetEstimation", 0)
 
     print("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
