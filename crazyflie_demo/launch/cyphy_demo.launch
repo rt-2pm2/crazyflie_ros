@@ -73,11 +73,11 @@
     Controller = { PID | Mellinger }
     -->
     <node name="setup_vehicle" pkg="crazyflie_demo" type="setup_vehicle.py" output="screen">
-        <param name="_cf" value="$(arg frame)" />
-        <param name="_comm_lev" value='1' type='int' />
-        <param name="_Estimator" value="USC" type='str' />
-        <param name="_ResEstimator" value='true' type='bool' />
-        <param name="_Controller" value="Mellinger" type='str' />
+        <param name="cf" value="$(arg frame)" />
+        <param name="comm_lev" value='1' type='int' />
+        <param name="Estimator" value="USC" type='str' />
+        <param name="ResEstimator" value='true' type='bool' />
+        <param name="Controller" value="Mellinger" type='str' />
     </node>
 
 
