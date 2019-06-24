@@ -25,9 +25,9 @@ def qd2w(q, qd):
     """
     W = np.array(
             [
-                [-q[1], q[0], q[3], -q[2]],
-                [-q[2], -q[3], q[0], q[1]],
-                [-q[3], q[2], -q[1], q[0]]
+                [-q.x, q.w, q.z, -q.y],
+                [-q.y, -q.z, q.w, q.x],
+                [-q.z, q.y, -q.x, q.w]
             ])
     w = np.matmul(W,qd)
     return w
@@ -61,30 +61,21 @@ def onNewPose(pose_msg):
     global qd_
     global t_
 
-    position = pose_msg.pose.position
+    p = pose_msg.pose.position
     quat = pose_msg.pose.orientation
-
+    
+    # Extract the array version
+    p_a = np.array([p.x, p.y, p.z])
+    q_a = np.array([quat.x, quat.y, quat.z, quat.w])
+    
     if firstTransform:
         print("PublishExternalPosition: First Transform")
         # Initialize the position
-        pos_ = position 
-        q_ = quat
+        pos_ = p_a 
+        q_ = q_a
         t_ = rospy.get_time() 
-
-
-## This part should be moved somewhere else outside
-#        # initialize kalman filter
-#        if (rospy.get_param('stabilizer/estimator') == 2): 
-#            rospy.set_param("kalman/initialX", x)
-#            rospy.set_param("kalman/initialY", y)
-#            rospy.set_param("kalman/initialZ", z)
-#            update_params(["kalman/initialX", "kalman/initialY", "kalman/initialZ"])
-#
-#            rospy.set_param("kalman/resetEstimation", 1)
-#            update_params(["kalman/resetEstimation"]) 
-#            firstTransform = False
-#        else:
-#            rospy.set_param('stabilizer/estimator', 2)
+        
+        firstTransform = False
 
     else:
         rosT = rospy.Time.now()
@@ -93,31 +84,31 @@ def onNewPose(pose_msg):
         position_msg.header.frame_id = pose_msg.header.frame_id
         position_msg.header.stamp = pose_msg.header.stamp
         position_msg.header.seq += 1
-        position_msg.point = position
+        position_msg.point = p
 
             
         ## Compose the Transform message
         quat_tf = qMsg2qTf(quat)
-        odom_broadcaster.sendTransform( (x, y, z), quat_tf, 
-                rosT, "world", "opti_odom") 
+        odom_broadcaster.sendTransform( (p.x, p.y, p.z), 
+            quat_tf, rosT, "world", "opti_odom") 
                 
         dt = (rospy.get_time() - t_)
         t_ = rospy.get_time() 
         
         ## Evaluate Velocity (Fading Filtered)
-        vel = (1.0 - v_alpha) * vel_ + v_alpha * (x - pos_)/dt
-        qd = (1.0 - qd_alpha) & qd_ + qd_alpha * (quat - q_)/dt
+        vel = (1.0 - v_alpha) * vel_ + v_alpha * (p_a - pos_)/dt
+        qd = (1.0 - qd_alpha) * qd_ + qd_alpha * (q_a - q_)/dt
         w = qd2w(quat, qd)
 
-        pos_ = position
+        pos_ = p_a
         vel_ = vel
-        q_ = quat
-        qd_ = qdot
+        q_ = q_a
+        qd_ = qd
 
         # Compose the Odometry message
         opti_odom.header.stamp = rosT 
-        opti_odom.pose_msg.pose.position.x = position
-        opti_odom.pose_msg.pose.orientation =quat 
+        opti_odom.pose.pose.position = p
+        opti_odom.pose.pose.orientation =quat 
         opti_odom.twist.twist.linear = vel 
         opti_odom.twist.twist.angular = w
          
@@ -128,7 +119,7 @@ def onNewPose(pose_msg):
 
 
 if __name__ == '__main__':
-    rospy.init_node('data_expose_vrpn', anonymous=True)
+    rospy.init_node('expose_data_vrpn', anonymous=True)
 
     print("Start expose_vrpn node")
     topic = rospy.get_param("~topic", "/vrpn_client_node/cf1/pose")
