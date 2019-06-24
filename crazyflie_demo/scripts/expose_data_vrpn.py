@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
     opti_odom = Odometry()
     opti_odom.child_frame_id = "cf1"
-    opti_odom.header.frame_id = "world"
+    opti_odom.header.frame_id = "/world" 
 
     # Publishers
     pub_pos = rospy.Publisher("external_position", PointStamped, queue_size=3)
