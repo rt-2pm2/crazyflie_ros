@@ -26,24 +26,30 @@ def onNewTransform(pose):
 
 
     if firstTransform:
+        firstTransform = False
         print("PublishExternalPosition: First Transform")
         # Initialize the position
         opti_odom.pose.pose.position.x = x
         opti_odom.pose.pose.position.y = y
         opti_odom.pose.pose.position.z = z
         t_ = rospy.get_time() 
-        # initialize kalman filter
-        if (rospy.get_param('stabilizer/estimator') == 2): 
-            rospy.set_param("kalman/initialX", x)
-            rospy.set_param("kalman/initialY", y)
-            rospy.set_param("kalman/initialZ", z)
-            update_params(["kalman/initialX", "kalman/initialY", "kalman/initialZ"])
-
-            rospy.set_param("kalman/resetEstimation", 1)
-            update_params(["kalman/resetEstimation"]) 
-            firstTransform = False
+        
+        if (rospy.get_param('stabilizer/estimator') == 3): 
+            pass
+            # Continue
         else:
-            rospy.set_param('stabilizer/estimator', 2)
+            # initialize kalman filter
+            if (rospy.get_param('stabilizer/estimator') == 2): 
+                rospy.set_param("kalman/initialX", x)
+                rospy.set_param("kalman/initialY", y)
+                rospy.set_param("kalman/initialZ", z)
+                update_params(["kalman/initialX", "kalman/initialY", "kalman/initialZ"])
+
+                rospy.set_param("kalman/resetEstimation", 1)
+                update_params(["kalman/resetEstimation"]) 
+                firstTransform = False
+            else:
+                rospy.set_param('stabilizer/estimator', 2)
 
     else:
         # Compose the PointStamped message 
