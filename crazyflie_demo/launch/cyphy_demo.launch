@@ -8,28 +8,32 @@
   <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
   </include>
 
+    <!--
+        ============================================================================
+        Run vrpn client
+        This connects to the optitrack server and produces pose messages regarding 
+        the CF
+    -->
+    <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+        <rosparam subst_value="true">
+        server: $(arg ip)
+        port: $(arg port)
+        update_frequency: 360.0
+        frame_id: /world
+        child_frame_id: $(arg frame)
+        use_server_time: false
+        broadcast_tf: false
+        refresh_tracker_frequency: 1.0
+        </rosparam>
+    </node>
 
 
-<!--
-=================================================================================================
-     Run vrpn client
-     This connects to the optitrack server and produces pose messages regarding the CF
--->
-<node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
-<rosparam subst_value="true">
-  server: $(arg ip)
-  port: $(arg port)
-  update_frequency: 360.0
-  frame_id: /world
-  child_frame_id: $(arg frame)
-  use_server_time: false
-  broadcast_tf: false
-  refresh_tracker_frequency: 1.0
-</rosparam>
-</node>
+<group ns="cf1">
 
-
-  <group ns="cf1">
+    <!--
+        ============================================================================
+        Start the server process that connects the CF to the ROS system
+    -->
     <node pkg="crazyflie_driver" type="crazyflie_add" name="crazyflie_add" output="screen">
       <param name="uri" value="$(arg uri)" />
       <param name="tf_prefix" value="cf1" />
@@ -50,50 +54,71 @@
 
 
     <!--
-    Publish the extarnal position information to a topic, such that it's feedforward to the CF filter
+    Publish the extarnal position information to a topic, such that it's 
+    feedforward to the CF filter
+    
+    This step should be done before the setup of the vehicle.
     -->
-    <node name="pose" pkg="crazyflie_demo" type="publish_external_position_vrpn.py" output="screen"> 
-      <param name="topic" value="vrpn_client_node/cf1/pose" />
+    <node name="expose_vrpn" pkg="crazyflie_demo" type="expose_data_vrpn.py" output="screen"> 
+      <param name="topic" value="/vrpn_client_node/cf1/pose" />
+      <param name="valpha" value="0.7" type='double' />
+      <param name="qdalpha" value="0.7" type='double' />
     </node>
+
 
     <!--
-    Set up the vehicle, selecting the Commander Level, Estimation Algorithm and Control Algorithm
+    Set up the vehicle, selecting the Commander Level, Estimation Algorithm and 
+    Control Algorithm
+    Estimator = {CMP | EKF | USC}
+    Controller = { PID | Mellinger }
     -->
-    <node name="setup_vehicle" pkg="crazyflie_demo" type="setup_vehicle" output="screen">
+    <node name="setup_vehicle" pkg="crazyflie_demo" type="setup_vehicle.py" output="screen">
         <param name="_cf" value="$(arg frame)" />
-        <param name="_comm_lev" value='1' />
-        <param name="_Estimator" value="EKF" />
-        <param name="_ResEstimator" value='1' />
-        <param name="_Controller" value="Mellinger" />
+        <param name="_comm_lev" value='1' type='int' />
+        <param name="_Estimator" value="USC" type='str' />
+        <param name="_ResEstimator" value='true' type='bool' />
+        <param name="_Controller" value="Mellinger" type='str' />
     </node>
 
-    <!-- =================================================================================================
-         These nodes are passive, they listen to topics and they publish on odometry topics, which can be 
-            represented in rviz, or in other visualization tool
+
+
+    <!--
+        ========================================================================
+         These nodes are passive, they listen to topics and they publish on 
+         odometry topics, which can be rpresented in rviz, or in other 
+         visualization tool
     -->
-    <!-- Publish the Ghost odometry -->
+    
+    <!-- 
+    Publish the Ghost odometry 
+    
     <node name="Odometry" pkg="crazyflie_demo" type="publish_odometry" output="screen"> 
       <param name="ghostNrate" value="30" />
     </node>
+    -->
 
-    <!-- Publish the Estimated odometry -->
+    <!--
+    Publish the Estimated odometry 
+    
     <node name="Est_Odometry" pkg="crazyflie_demo" type="publish_kalman_odometry.py" output="screen"> 
     </node>
+    -->
 
-
-    <node pkg="tf" type="static_transform_publisher" name="baselink_broadcaster" args="0 0 0 0 0 0 1 $(arg frame) /world 100" />
   </group>
-
   
-    <!-- =================================================================================================
+<!--
+    ============================================================================
         Visualization with RVIZ 
-    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find crazyflie_demo)/launch/cyphy_rviz.rviz" /> 
--->
+        
+<node pkg="rviz" type="rviz" name="rviz" args="-d $(find crazyflie_demo)/launch/cyphy_rviz.rviz" /> 
 
-    -->
-    <!-- =================================================================================================
-        Bag recording 
-    -->
+<node pkg="tf" type="static_transform_publisher" name="baselink_broadcaster" args="0 0 0 0 0 0 1 $(arg frame) /world 100" />
+  
+-->
+<!--
+    ============================================================================
+    Bag recording 
+-->
   <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/log_kalman /cf1/logEkfMocap /cf1/vrpn_client_node/cf1/pose /ghost_trajectory"/>
 
 </launch>
