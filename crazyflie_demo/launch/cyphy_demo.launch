@@ -8,6 +8,27 @@
   <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
   </include>
 
+
+
+<!--
+=================================================================================================
+     Run vrpn client
+     This connects to the optitrack server and produces pose messages regarding the CF
+-->
+<node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
+<rosparam subst_value="true">
+  server: $(arg ip)
+  port: $(arg port)
+  update_frequency: 360.0
+  frame_id: /world
+  child_frame_id: $(arg frame)
+  use_server_time: false
+  broadcast_tf: false
+  refresh_tracker_frequency: 1.0
+</rosparam>
+</node>
+
+
   <group ns="cf1">
     <node pkg="crazyflie_driver" type="crazyflie_add" name="crazyflie_add" output="screen">
       <param name="uri" value="$(arg uri)" />
@@ -19,19 +40,32 @@
       <param name="enable_logging_pressure" value="False" />
       <param name="enable_logging_battery" value="False" />
       <param name="enable_logging_packets" value="False" />
-      <param name="enable_logging_pose" value="True" /> 
+      <param name="enable_logging_pose" value="False" /> 
       <rosparam>
         genericLogTopics: ["logEkfMocap"]
-        genericLogTopicFrequencies: [10]
-        genericLogTopic_logEkfMocap_Variables: ["ekf_mocap.x", "ekf_mocap.y", "ekf_mocap.z", "ekf_mocap.q0", "ekf_mocap.q1", "ekf_mocap.q2"]
+        genericLogTopicFrequencies: [100]
+        genericLogTopic_logEkfMocap_Variables: ["ekf_usc.x", "ekf_usc.z", "ekf_usc.q0", "ekf_usc.q1", "ekf_usc.q2"]
       </rosparam>
     </node>
 
-    <!-- Publish the extarnal position information to a topic, such that it's feedforward to the CF filter --> 
+
+    <!--
+    Publish the extarnal position information to a topic, such that it's feedforward to the CF filter
+    -->
     <node name="pose" pkg="crazyflie_demo" type="publish_external_position_vrpn.py" output="screen"> 
-      <param name="topic" value="/cf1/vrpn_client_node/cf1/pose" />
+      <param name="topic" value="vrpn_client_node/cf1/pose" />
     </node>
 
+    <!--
+    Set up the vehicle, selecting the Commander Level, Estimation Algorithm and Control Algorithm
+    -->
+    <node name="setup_vehicle" pkg="crazyflie_demo" type="setup_vehicle" output="screen">
+        <param name="_cf" value="$(arg frame)" />
+        <param name="_comm_lev" value='1' />
+        <param name="_Estimator" value="EKF" />
+        <param name="_ResEstimator" value='1' />
+        <param name="_Controller" value="Mellinger" />
+    </node>
 
     <!-- =================================================================================================
          These nodes are passive, they listen to topics and they publish on odometry topics, which can be 
@@ -48,25 +82,6 @@
 
 
     <node pkg="tf" type="static_transform_publisher" name="baselink_broadcaster" args="0 0 0 0 0 0 1 $(arg frame) /world 100" />
-
-
-
-    <!-- =================================================================================================
-         Run vrpn client
-    -->
-    <!--For OptiTrack users: make sure you edit vrpn_client_ros.cpp file to adjust axes transformation-->
-    <node pkg="vrpn_client_ros" type="vrpn_client_node" name="vrpn_client_node" output="screen">
-    <rosparam subst_value="true">
-      server: $(arg ip)
-      port: $(arg port)
-      update_frequency: 360.0
-      frame_id: /world
-      child_frame_id: $(arg frame)
-      use_server_time: false
-      broadcast_tf: false
-      refresh_tracker_frequency: 1.0
-    </rosparam>
-    </node>
   </group>
 
   
