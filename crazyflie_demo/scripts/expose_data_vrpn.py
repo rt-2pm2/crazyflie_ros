@@ -12,7 +12,8 @@
 
 import rospy
 import tf
-from geometry_msgs.msg import PointStamped, TransformStamped, PoseStamped #PoseStamped added to support vrpn_client
+from geometry_msgs.msg import PointStamped, TransformStamped, PoseStamped
+from geometry_msgs.msg import Vector3Stamped
 from nav_msgs.msg import Odometry
 from crazyflie_driver.srv import UpdateParams
 import numpy as np
@@ -42,11 +43,12 @@ def qMsg2qTf(quat):
     explicit_quat = [quat.x, quat.y, quat.z, quat.w]
     euler = tf.transformations.euler_from_quaternion(explicit_quat)
     quat_tf = tf.transformations.quaternion_from_euler(euler[0], euler[1], euler[2]) 
-    return quat_tf
+    return (quat_tf, euler)
 
 
 def onNewPose(pose_msg):
     global position_msg
+    global attrpy_msg
     global pub_pos
     global opti_odom_pub
     global odom_broadcaster
@@ -80,6 +82,9 @@ def onNewPose(pose_msg):
     else:
         rosT = rospy.Time.now()
 
+        dt = (rospy.get_time() - t_)
+        t_ = rospy.get_time()
+        
         # Compose the PointStamped message 
         position_msg.header.frame_id = pose_msg.header.frame_id
         position_msg.header.stamp = pose_msg.header.stamp
@@ -88,12 +93,16 @@ def onNewPose(pose_msg):
 
             
         ## Compose the Transform message
-        quat_tf = qMsg2qTf(quat)
+        (quat_tf, euler) = qMsg2qTf(quat)
         odom_broadcaster.sendTransform( (p.x, p.y, p.z), 
             quat_tf, rosT, "world", "opti_odom") 
-                
-        dt = (rospy.get_time() - t_)
-        t_ = rospy.get_time() 
+        
+        attrpy_msg.header.seq += 1
+        attrpy_msg.header.frame_id = pose_msg.header.frame_id
+        attrpy_msg.header.stamp = rosT
+        attrpy_msg.vector.x = euler[0]
+        attrpy_msg.vector.y = euler[1]
+        attrpy_msg.vector.z = euler[2]
         
         ## Evaluate Velocity (Fading Filtered)
         vel = (1.0 - v_alpha) * vel_ + v_alpha * (p_a - pos_)/dt
@@ -115,7 +124,9 @@ def onNewPose(pose_msg):
         ## Publish
         pub_pos.publish(position_msg)
         pub_pose.publish(pose_msg)
+        pub_pose_rpy.publish(attrpy_msg)
         opti_odom_pub.publish(opti_odom)
+        
 
 
 if __name__ == '__main__':
@@ -148,11 +159,15 @@ if __name__ == '__main__':
 
     opti_odom = Odometry()
     opti_odom.child_frame_id = "cf1"
-    opti_odom.header.frame_id = "/world" 
+    opti_odom.header.frame_id = "world"
+
+    attrpy_msg = Vector3Stamped()
+    attrpy_msg.header.seq = 0
 
     # Publishers
     pub_pos = rospy.Publisher("external_position", PointStamped, queue_size=3)
     pub_pose = rospy.Publisher("external_pose", PoseStamped, queue_size=3)
+    pub_pose_rpy = rospy.Publisher("external_pose_rpy", Vector3Stamped, queue_size=3)
     opti_odom_pub = rospy.Publisher("opti_odom", Odometry, queue_size = 3)
  
     # Subscribe
