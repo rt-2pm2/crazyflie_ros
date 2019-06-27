@@ -2,7 +2,7 @@
 <launch>
         <arg name="uri" default="radio://0/100/2M/E7E7E7E7E7" /> <!--Adjust this parameter-->
         <arg name="frame" default="cf1" /> <!--For OptiTrack users: frame name should match the Rigid-body name on Motive-->
-        <arg name="ip" default="192.168.254.1" /> <!--Adjust this parameter-->
+        <arg name="ip" default="192.168.1.198" /> <!--Adjust this parameter-->
         <arg name="port" default="3883" />
 
         <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
@@ -52,9 +52,9 @@ Start the server process that connects the CF to the ROS system
         <param name="enable_logging_packets" value="False" />
         <param name="enable_logging_pose" value="True" /> 
         <rosparam>
-                genericLogTopics: ["logAttRPY"]
+                genericLogTopics: ["logEstAttRPY"]
                 genericLogTopicFrequencies: [100]
-                genericLogTopic_logEkfMocap_Variables: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
+                genericLogTopic_logEstAttRPY_Variables: ["stateEstimate.roll", "stateEstimate.pitch", "stateEstimate.yaw"]
         </rosparam>
 </node>
 
