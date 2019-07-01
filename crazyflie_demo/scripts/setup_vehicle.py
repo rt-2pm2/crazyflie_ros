@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     rate = rospy.Rate(1)
     while (init_ekf and not ekf_initialized and not rospy.is_shutdown()):
-        print("Wainting for filter initialization...")
+        print("Waiting for filter initialization...")
         rate.sleep()
         rospy.spin()
 
