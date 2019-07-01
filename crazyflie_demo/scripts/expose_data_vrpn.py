@@ -100,9 +100,9 @@ def onNewPose(pose_msg):
         attrpy_msg.header.seq += 1
         attrpy_msg.header.frame_id = pose_msg.header.frame_id
         attrpy_msg.header.stamp = rosT
-        attrpy_msg.vector.x = euler[0]
-        attrpy_msg.vector.y = euler[1]
-        attrpy_msg.vector.z = euler[2]
+        attrpy_msg.vector.x = euler[0] * 180.0 / np.pi
+        attrpy_msg.vector.y = euler[1] * 180.0 / np.pi
+        attrpy_msg.vector.z = euler[2] * 180.0 / np.pi
         
         ## Evaluate Velocity (Fading Filtered)
         vel = (1.0 - v_alpha) * vel_ + v_alpha * (p_a - pos_)/dt
