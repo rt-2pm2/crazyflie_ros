@@ -79,7 +79,7 @@ def rep_trajectory(trajectory, start_position, freq):
 if __name__ == '__main__':
     rospy.init_node('Node_commander')
 
-    print("Starting Node Commander")
+    rospy.loginfo("Starting Node Commander")
 
     file_name = rospy.search_param('trajectory_file')
     if (file_name):
@@ -95,24 +95,31 @@ if __name__ == '__main__':
     cf = crazyflie.Crazyflie("cf1", "/tf")
 
 
-    print("Uploading Trajectory...")
+    rospy.loginfo("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
     traj.loadcsv(trj_file) 
     cf.uploadTrajectory(0, 0, traj)
-    print("Trajectory duration: ", traj.duration)
-    time.sleep(2)
+    rospy.loginfo("Trajectory duration: " + str(traj.duration))
+    time.sleep(3)
 
-    cf.takeoff(targetHeight = 0.5, duration = 2.0)
-    time.sleep(2.0)
+    cf.takeoff(targetHeight = 0.6, duration = 3.0)
+    time.sleep(5.0)
+    
+    cf.goTo(goal = [1.0, 0, 0.85], yaw=0.0, duration = 2.0, relative = False)
+    cf.goTo(goal = [1.0, 0, 0.85], yaw=0.0, duration = 2.0, relative = False)
+    #time.sleep(3.0)
 
+    rospy.loginfo("Starting Trajectory")
+    cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
     t = Thread(target=rep_trajectory, args=(traj,[0,0,0], frequency)).start()
 
-    time.sleep(traj.duration)
+    time.sleep(traj.duration + 1)
 
+    rospy.loginfo("Landing")
     cf.land(targetHeight = 0.05, duration = 2.0)
     time.sleep(0.1)
     cf.land(targetHeight = 0.05, duration = 2.0)
-
-    time.sleep(1)
+    time.sleep(2)
+    
     cf.stop()
