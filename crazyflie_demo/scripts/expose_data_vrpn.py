@@ -55,6 +55,7 @@ def onNewPose(pose_msg):
     global firstTransform
     global valpha
     global qdalpha
+    global t_delay
 
     # Store variables for computing the velocities
     global pos_
@@ -85,6 +86,33 @@ def onNewPose(pose_msg):
         dt = (rospy.get_time() - t_)
         t_ = rospy.get_time()
         
+        ## Evaluate Velocity (Fading Filtered)
+        vel = (1.0 - v_alpha) * vel_ + v_alpha * (p_a - pos_)/dt
+        qd = (1.0 - qd_alpha) * qd_ + qd_alpha * (q_a - q_)/dt
+        w = qd2w(quat, qd)
+
+        pos_ = p_a
+        vel_ = vel
+        q_ = q_a
+        qd_ = qd
+
+
+        # Push forward position and attitude knowing the delay
+        p.x = p.x + vel[0] * t_delay
+        p.y = p.y + vel[1] * t_delay
+        p.z = p.z + vel[2] * t_delay
+   
+        # Use q_a to compute intermediate values
+        #   (It will be overwritten the next cycle)
+        q_a = q_a + qd * t_delay
+        q_a = q_a / np.linalg.norm(q_a) 
+
+        quat.x = q_a[0]
+        quat.y = q_a[1]
+        quat.z = q_a[2]
+        quat.w = q_a[3]
+
+
         # Compose the PointStamped message 
         position_msg.header.frame_id = pose_msg.header.frame_id
         position_msg.header.stamp = pose_msg.header.stamp
@@ -104,16 +132,7 @@ def onNewPose(pose_msg):
         attrpy_msg.vector.y = euler[1] * 180.0 / np.pi
         attrpy_msg.vector.z = euler[2] * 180.0 / np.pi
         
-        ## Evaluate Velocity (Fading Filtered)
-        vel = (1.0 - v_alpha) * vel_ + v_alpha * (p_a - pos_)/dt
-        qd = (1.0 - qd_alpha) * qd_ + qd_alpha * (q_a - q_)/dt
-        w = qd2w(quat, qd)
-
-        pos_ = p_a
-        vel_ = vel
-        q_ = q_a
-        qd_ = qd
-
+        
         # Compose the Odometry message
         opti_odom.header.stamp = rosT 
         opti_odom.pose.pose.position = p
@@ -122,8 +141,14 @@ def onNewPose(pose_msg):
         opti_odom.twist.twist.angular = w
          
         ## Publish
+
+        # External Position (For the EKF)
         pub_pos.publish(position_msg)
+
+        # External Pose (For the EKF)
         pub_pose.publish(pose_msg)
+
+        # Odomtry (For plotting)
         pub_pose_rpy.publish(attrpy_msg)
         opti_odom_pub.publish(opti_odom)
         
@@ -137,6 +162,8 @@ if __name__ == '__main__':
     
     v_alpha = rospy.get_param("~valpha", 0.7)
     qd_alpha = rospy.get_param("~qdalpha", 0.7)
+
+    t_delay = rospy.get_param("~time_delay", 0.006)
 
     rospy.wait_for_service('update_params')
     rospy.loginfo("found update_params service")
