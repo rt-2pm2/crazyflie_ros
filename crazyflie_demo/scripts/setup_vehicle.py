@@ -31,7 +31,8 @@ def ext_pos_callback(ext_point_stmp):
             y = ext_point_stmp.point.x
             z = ext_point_stmp.point.x
             
-            print("Initializing the KF: [", x, " ", y, " ", z, "]")
+            rospy.loginfo("Initializing the KF: [" + str(x) + " " + 
+                    str(y) + " " + str(z) + "]")
             
             rospy.set_param("kalman/initialX", x)
             rospy.set_param("kalman/initialY", y)
@@ -44,7 +45,7 @@ def ext_pos_callback(ext_point_stmp):
 if __name__ == '__main__':
     rospy.init_node('Setup_node')
 
-    print("Vehicle Setup")
+    rospy.loginfo("Vehicle Setup")
 
     est = 2
     ctr = 2
@@ -56,14 +57,15 @@ if __name__ == '__main__':
     controller = rospy.get_param('~Controller', 'Mellinger')
     req_reset = rospy.get_param('~ResEstimator', True)
 
-    print("Selecting CF: ", cf_id)
-    print('Selecting Commander Level: ', comm_lev)
-    print("Selecting Estimator: ", estimator)
-    print("Selecting Controller: ", controller)
+    rospy.loginfo("Selecting CF: " + str(cf_id))
+    rospy.loginfo('Selecting Commander Level: ' + str(comm_lev))
+    rospy.loginfo("Selecting Estimator: " + str(estimator))
+    rospy.loginfo("Selecting Controller: " + str(controller))
 
     # Subscribe to the external position topic, in case it is necessary.
     ext_pos_topic = "/" + cf_id + "/external_position"
-    print("Subscribing to the external position topic: ", ext_pos_topic)
+    rospy.loginfo("Subscribing to the external position topic: " + 
+            str(ext_pos_topic))
     rospy.Subscriber(ext_pos_topic, PointStamped, ext_pos_callback)
 
     # Create CF object
@@ -76,7 +78,7 @@ if __name__ == '__main__':
     # Select the controller level
     while (cf.getParam("commander/enHighLevel") != comm_lev):
         cf.setParam("commander/enHighLevel", comm_lev)
-    print("Correctly set ", cf.getParam("commander/enHighLevel"), 
+    rospy.loginfo("Correctly set " + str(cf.getParam("commander/enHighLevel")) + 
         " commander level")
 
     # Map the estimator name to index
@@ -90,7 +92,8 @@ if __name__ == '__main__':
     while (cf.getParam("stabilizer/estimator") != est):
         cf.setParam("stabilizer/estimator", est) # 1)Complementary 2)EKF 3)USC
 
-    print("Correctly set ", cf.getParam("stabilizer/estimator")," estimator")
+    rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/estimator")) + 
+            " estimator")
     time.sleep(1)
 
     # If Kalman reset the estimator
@@ -107,12 +110,13 @@ if __name__ == '__main__':
     # Set the controller
     while (cf.getParam("stabilizer/controller") != ctr):
         cf.setParam("stabilizer/controller", ctr) # 1)PID  2)Mellinger
-    print("Correctly set ", cf.getParam("stabilizer/controller")," controller")
+    rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/controller")) + 
+            " controller")
     time.sleep(3)
 
     rate = rospy.Rate(1)
     while (init_ekf and not ekf_initialized and not rospy.is_shutdown()):
-        print("Waiting for filter initialization...")
+        rospy.loginfo("Waiting for filter initialization...")
         rate.sleep()
         rospy.spin()
 
