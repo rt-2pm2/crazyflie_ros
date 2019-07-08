@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-        <arg name="uri" default="radio://0/100/2M/E7E7E7E7E7" /> <!--Adjust this parameter-->
-        <arg name="frame" default="cf1" /> <!--For OptiTrack users: frame name should match the Rigid-body name on Motive-->
-        <arg name="ip" default="192.168.1.198" /> <!--Adjust this parameter-->
+        <arg name="uri" default="radio://0/100/2M/E7E7E7E7E7" />
+        <arg name="frame" default="cf1" />
+        <arg name="ip" default="192.168.1.198" />
         <arg name="port" default="3883" />
 
         <include file="$(find crazyflie_driver)/launch/crazyflie_server.launch">
@@ -28,13 +28,13 @@ the CF
 </node>
 
 
-<group ns="cf1">
 <!-- GROUP CF1
 ============================================================================
 ============================================================================
 ============================================================================
 ============================================================================
 -->
+<group ns="cf1">
 
 <!--
 ============================================================================
@@ -62,7 +62,6 @@ Start the server process that connects the CF to the ROS system
 <!--
 Publish the extarnal position information to a topic, such that it's 
 feedforward to the CF filter
-
 This step should be done before the setup of the vehicle.
 -->
 <node name="expose_vrpn" pkg="crazyflie_demo" type="expose_data_vrpn.py" output="screen"> 
@@ -91,7 +90,7 @@ Controller = { PID | Mellinger }
 <!--
 ========================================================================
 These nodes are passive, they listen to topics and they publish on 
-odometry topics, which can be rpresented in rviz, or in other 
+odometry topics, which can be represented in rviz, or in other 
 visualization tool
 -->
 
@@ -131,7 +130,7 @@ Bag recording
 - /vrpn_client_node/cf1/pose: This is the ground truth
 - /ghost_trajectory: This is the requested trajectory pose (simulated)
 
--->
 <node pkg="rosbag" name="record" type="record" args="-o /home/cyphy/workspace_luigi/bags/cf1 /cf1/pose /cf1/external_pose_rpy /cf1/logEstAttRPY /vrpn_client_node/cf1/pose /ghost_trajectory"/>
 
+-->
 </launch>

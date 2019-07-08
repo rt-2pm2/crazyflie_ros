@@ -81,6 +81,8 @@ if __name__ == '__main__':
 
     rospy.loginfo("Starting Node Commander")
 
+    cf = crazyflie.Crazyflie("cf1", "/tf")
+
     file_name = rospy.search_param('trajectory_file')
     if (file_name):
         trj_file = rospy.get_param(file_name) 
@@ -90,10 +92,6 @@ if __name__ == '__main__':
 
 
     frequency = rospy.get_param('freq_ghost', 30.0);
-
-
-    cf = crazyflie.Crazyflie("cf1", "/tf")
-
 
     rospy.loginfo("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
