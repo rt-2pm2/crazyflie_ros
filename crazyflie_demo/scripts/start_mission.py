@@ -16,6 +16,7 @@
 # 
 # 
 
+import numpy as np
 import rospy
 import crazyflie
 import time
@@ -63,9 +64,9 @@ def rep_trajectory(trajectory, start_position, freq):
             R = rep_trj.R
             (roll, pitch, yaw) = euler_from_matrix(R)
 
-            msg.r = roll
-            msg.p = pitch
-            msg.y = yaw
+            msg.r = roll * 180 / np.pi
+            msg.p = pitch * 180 / np.pi
+            msg.y = yaw * 180 / np.pi
 
             # Pubblish the evaluated trajectory
             ghost_pub.publish(msg)
@@ -103,21 +104,21 @@ if __name__ == '__main__':
     cf.takeoff(targetHeight = 0.6, duration = 3.0)
     time.sleep(5.0)
     
-    cf.goTo(goal = [1.0, 0, 0.85], yaw=0.0, duration = 2.0, relative = False)
-    cf.goTo(goal = [1.0, 0, 0.85], yaw=0.0, duration = 2.0, relative = False)
-    #time.sleep(3.0)
+    cf.goTo(goal = [-1.5, 0, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    cf.goTo(goal = [-1.5, 0, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    time.sleep(4.0)
 
     rospy.loginfo("Starting Trajectory")
     cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
-    t = Thread(target=rep_trajectory, args=(traj,[0,0,0], frequency)).start()
+    t = Thread(target=rep_trajectory, args=(traj,[-1.5, 0, 1.10], frequency)).start()
 
-    time.sleep(traj.duration + 1)
-
+    time.sleep(traj.duration / 1.5)
+ 
+    cf.stop()
     rospy.loginfo("Landing")
     cf.land(targetHeight = 0.05, duration = 2.0)
     time.sleep(0.1)
     cf.land(targetHeight = 0.05, duration = 2.0)
     time.sleep(2)
-    
-    cf.stop()
+
