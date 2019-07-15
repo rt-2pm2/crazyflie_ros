@@ -36,10 +36,8 @@ the CF
 -->
 <group ns="cf1">
 
-<!--
 ============================================================================
 Start the server process that connects the CF to the ROS system
--->
 <node pkg="crazyflie_driver" type="crazyflie_add" name="crazyflie_add" output="screen">
         <param name="uri" value="$(arg uri)" />
         <param name="tf_prefix" value="cf1" />
@@ -58,18 +56,23 @@ Start the server process that connects the CF to the ROS system
         </rosparam>
 </node>
 
-
-<!--
 Publish the extarnal position information to a topic, such that it's 
 feedforward to the CF filter
 This step should be done before the setup of the vehicle.
--->
 <node name="expose_vrpn" pkg="crazyflie_demo" type="expose_data_vrpn.py" output="screen"> 
         <param name="topic" value="/vrpn_client_node/cf1/pose" />
         <param name="valpha" value="0.7" type='double' />
         <param name="qdalpha" value="0.7" type='double' />
 </node>
 
+<!--
+<node name="aggregator" pkg="crazyflie_demo" type="state_aggregator" output="screen"> 
+        <param name="topic" value="/vrpn_client_node/cf1/pose" />
+        <param name="valpha" value="0.7" type='double' />
+        <param name="qdalpha" value="0.7" type='double' />
+	<param name="time_delay" value="0.3" type='double' />
+</node>
+-->
 
 <!--
 Set up the vehicle, selecting the Commander Level, Estimation Algorithm and 
@@ -92,34 +95,28 @@ Controller = { PID | Mellinger }
 These nodes are passive, they listen to topics and they publish on 
 odometry topics, which can be represented in rviz, or in other 
 visualization tool
--->
 
-<!-- 
 Publish the Ghost odometry 
-
+-->
 <node name="Odometry" pkg="crazyflie_demo" type="publish_odometry" output="screen"> 
 <param name="ghostNrate" value="30" />
 </node>
--->
 
-<!--
 Publish the Estimated odometry 
 
 <node name="Est_Odometry" pkg="crazyflie_demo" type="publish_kalman_odometry.py" output="screen"> 
 </node>
--->
 
 </group>
 
 <!--
 ============================================================================
 Visualization with RVIZ 
-
+-->
 <node pkg="rviz" type="rviz" name="rviz" args="-d $(find crazyflie_demo)/launch/cyphy_rviz.rviz" /> 
 
 <node pkg="tf" type="static_transform_publisher" name="baselink_broadcaster" args="0 0 0 0 0 0 1 $(arg frame) /world 100" />
 
--->
 
 <!--
 ============================================================================
@@ -131,6 +128,6 @@ Bag recording
 - /ghost_trajectory: This is the requested trajectory pose (simulated)
 -->
 
-<node pkg="rosbag" name="record" type="record" args="-O /home/rt-2pm2/mnt/HDD/autopilot/Crazyflie/crazyflie_ros/bags/cf1 /cf1/pose /cf1/external_pose_rpy /cf1/logEstAttRPY /vrpn_client_node/cf1/pose /ghost_trajectory"/>
+<node pkg="rosbag" name="record" type="record" args="-O /tmp/cf1 /cf1/pose /cf1/external_pose_rpy /cf1/logEstAttRPY /vrpn_client_node/cf1/pose /ghost_trajectory"/>
 
 </launch>
