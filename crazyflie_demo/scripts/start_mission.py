@@ -101,12 +101,12 @@ if __name__ == '__main__':
     rospy.loginfo("Trajectory duration: " + str(traj.duration))
     time.sleep(3)
 
-    cf.takeoff(targetHeight = 0.6, duration = 3.0)
+    cf.takeoff(targetHeight = 1.1, duration = 4.0)
     time.sleep(5.0)
     
-    cf.goTo(goal = [-1.5, 0, 1.10], yaw=0.0, duration = 2.0, relative = False)
-    cf.goTo(goal = [-1.5, 0, 1.10], yaw=0.0, duration = 2.0, relative = False)
-    time.sleep(4.0)
+    cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    time.sleep(3.0)
 
     rospy.loginfo("Starting Trajectory")
     cf.startTrajectory(0, timescale=1.0)
