@@ -66,12 +66,16 @@ def rep_trajectory(trajectory, start_position, freq):
 if __name__ == '__main__':
     rospy.init_node('Ghost_Node')
 
-    v = rospy.search_param('file')
-    if (v):
-        trj_file = rospy.get_param(v)
+    start_point = rospy.get_param('start_p', [0.0, 0.0 ,0.0])
+    file_name = rospy.search_param('trj_file')
+    if (file_name):
+        trj_file = rospy.get_param(file_name) 
+        print("Trajectory file found! ", trj_file)
     else:
+        rospy.loginfo("Expecting parameter 'trj_file'")
+        rospy.loginfo("rosrun plot_ghost.py _trj_file:='nameofthefile'")
         rospy.signal_shutdown("Trjectory file not found!")
- 
+
     
     frequency = rospy.get_param('freq', 30.0);
 
@@ -79,8 +83,6 @@ if __name__ == '__main__':
     print("Loading trajectory from: ", trj_file)
     traj = uav_trajectory.Trajectory()
     traj.loadcsv(trj_file)
-    
-    print("Trajecotry duration: ", traj.duration)
 
-    t = Thread(target=rep_trajectory, args=(traj,[0,0,0], frequency)).start()
+    t = Thread(target=rep_trajectory, args=(traj,start_point, frequency)).start()
  
