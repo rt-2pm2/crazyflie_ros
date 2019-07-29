@@ -159,15 +159,11 @@ if __name__ == '__main__':
 
     print("Start expose_vrpn node")
     topic = rospy.get_param("~topic", "/vrpn_client_node/cf1/pose")
-    
+   
     v_alpha = rospy.get_param("~valpha", 0.7)
     qd_alpha = rospy.get_param("~qdalpha", 0.7)
 
     t_delay = rospy.get_param("~time_delay", 0.006)
-
-    rospy.wait_for_service('update_params')
-    rospy.loginfo("found update_params service")
-    update_params = rospy.ServiceProxy('update_params', UpdateParams)
 
     firstTransform = True
 
