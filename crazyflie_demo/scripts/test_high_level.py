@@ -8,16 +8,9 @@ import uav_trajectory
 if __name__ == '__main__':
     rospy.init_node('test_high_level')
 
-    cf = crazyflie.Crazyflie("crazyflie1", "/tf")
+    cf = crazyflie.Crazyflie("cf1", "/tf")
 
-    cf.setParam("commander/enHighLevel", 1)
-    cf.setParam("stabilizer/estimator", 2) # Use EKF
-    cf.setParam("stabilizer/controller", 2) # Use mellinger controller
-
-    # reset kalman
-    cf.setParam("kalman/resetEstimation", 1)
-
-    # cf.takeoff(targetHeight = 0.5, duration = 2.0)
+    cf.takeoff(targetHeight = 0.5, duration = 2.0)
     # time.sleep(3.0)
 
     # cf.goTo(goal = [0.5, 0.0, 0.0], yaw=0.2, duration = 2.0, relative = True)
@@ -45,4 +38,4 @@ if __name__ == '__main__':
 #    cf.startTrajectory(0, timescale=1.0, reverse=True)
 #    time.sleep(traj1.duration * 1.0)
 
-    cf.stop()
+#    cf.stop()
