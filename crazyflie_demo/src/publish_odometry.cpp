@@ -35,14 +35,6 @@ static geometry_msgs::TransformStamped ghost_odom_trans;
 // Odometry Topic
 static nav_msgs::Odometry ghost_odom;
 
-// =======================================================
-// ------------------------ REAL  ------------------------
-// Odometry: quaternion
-
-// Odometry: TF 
-
-// Odometry Topic
-
 
 // ===========================================================
 
