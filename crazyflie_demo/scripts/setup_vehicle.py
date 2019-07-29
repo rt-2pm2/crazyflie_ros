@@ -28,8 +28,8 @@ def ext_pos_callback(ext_point_stmp):
         # initialize kalman filter
         if (rospy.get_param('stabilizer/estimator') == 2):
             x = ext_point_stmp.point.x
-            y = ext_point_stmp.point.x
-            z = ext_point_stmp.point.x
+            y = ext_point_stmp.point.y
+            z = ext_point_stmp.point.z
             
             rospy.loginfo("Initializing the KF: [" + str(x) + " " + 
                     str(y) + " " + str(z) + "]")
