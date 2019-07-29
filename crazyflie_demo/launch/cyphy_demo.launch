@@ -36,8 +36,10 @@ the CF
 -->
 <group ns="cf1">
 
+<!--
 ============================================================================
 Start the server process that connects the CF to the ROS system
+-->
 <node pkg="crazyflie_driver" type="crazyflie_add" name="crazyflie_add" output="screen">
         <param name="uri" value="$(arg uri)" />
         <param name="tf_prefix" value="cf1" />
@@ -56,9 +58,11 @@ Start the server process that connects the CF to the ROS system
         </rosparam>
 </node>
 
+<!--
 Publish the extarnal position information to a topic, such that it's 
 feedforward to the CF filter
 This step should be done before the setup of the vehicle.
+-->
 <node name="expose_vrpn" pkg="crazyflie_demo" type="expose_data_vrpn.py" output="screen"> 
         <param name="topic" value="/vrpn_client_node/cf1/pose" />
         <param name="valpha" value="0.7" type='double' />
@@ -102,8 +106,9 @@ Publish the Ghost odometry
 <param name="ghostNrate" value="30" />
 </node>
 
+<!--
 Publish the Estimated odometry 
-
+-->
 <node name="Est_Odometry" pkg="crazyflie_demo" type="publish_kalman_odometry.py" output="screen"> 
 </node>
 
@@ -127,7 +132,6 @@ Bag recording
 - /vrpn_client_node/cf1/pose: This is the ground truth
 - /ghost_trajectory: This is the requested trajectory pose (simulated)
 -->
-
 <node pkg="rosbag" name="record" type="record" args="-O /tmp/cf1 /cf1/pose /cf1/external_pose_rpy /cf1/logEstAttRPY /vrpn_client_node/cf1/pose /ghost_trajectory"/>
 
 </launch>
