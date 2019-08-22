@@ -111,7 +111,7 @@ if __name__ == '__main__':
     rospy.loginfo("Starting Trajectory")
     cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
-    t = Thread(target=rep_trajectory, args=(traj,[-1.5, 0, 1.10], frequency)).start()
+    t = Thread(target=rep_trajectory, args=(traj,[0.0, 0.5, 1.10], frequency)).start()
 
     time.sleep(traj.duration / 1.5)
  
