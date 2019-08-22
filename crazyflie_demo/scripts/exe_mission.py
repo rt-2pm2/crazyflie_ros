@@ -30,17 +30,9 @@ if __name__ == '__main__':
 
     cf = crazyflie.Crazyflie("cf1", "/tf")
 
-    file_name = rospy.search_param('trajectory_file')
-    if (file_name):
-        trj_file = rospy.get_param(file_name) 
-        print("Trajectory file found! ", trj_file)
-    else:
-        rospy.signal_shutdown("Trjectory file not found!")
-
-
     rospy.loginfo("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
-    traj.loadcsv(trj_file) 
+    traj.loadcsv('/tmp/toTarget.csv') 
     cf.uploadTrajectory(0, 0, traj)
     rospy.loginfo("Trajectory duration: " + str(traj.duration))
     time.sleep(3)
@@ -49,7 +41,7 @@ if __name__ == '__main__':
     cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
 
-    time.sleep(traj.duration / 1.5)
+    time.sleep(traj.duration * 1.5)
  
     cf.stop()
 
