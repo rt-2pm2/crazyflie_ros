@@ -49,6 +49,7 @@ if __name__ == '__main__':
 
     est = 2
     ctr = 2
+    cmode = 0
 
     # Read the parameters
     cf_id = rospy.get_param('~cf', 'cf1')
@@ -56,11 +57,13 @@ if __name__ == '__main__':
     estimator = rospy.get_param('~Estimator', 'EKF')
     controller = rospy.get_param('~Controller', 'Mellinger')
     req_reset = rospy.get_param('~ResEstimator', True)
+    stabMode = rospy.get_param('~stabMode', '0')
 
     rospy.loginfo("Selecting CF: " + str(cf_id))
     rospy.loginfo('Selecting Commander Level: ' + str(comm_lev))
     rospy.loginfo("Selecting Estimator: " + str(estimator))
     rospy.loginfo("Selecting Controller: " + str(controller))
+    rospy.loginfo("Selecting StabMode: " + str(stabMode))
 
     # Subscribe to the external position topic, in case it is necessary.
     ext_pos_topic = "/" + cf_id + "/external_position"
@@ -112,7 +115,22 @@ if __name__ == '__main__':
         cf.setParam("stabilizer/controller", ctr) # 1)PID  2)Mellinger
     rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/controller")) + 
             " controller")
-    time.sleep(3)
+    time.sleep(2)
+
+    # Setting the flight mode on the Crazyfly
+    if (stabMode == 0):
+        cmode = 0
+    if (stabMode == 1):
+        cmode = 1
+
+    while (cf.getParam("flightmode/stabModeRoll") != cmode):
+        rospy.loginfo("Setting flightmode/stabModeRoll = " + str(cmode))
+        cf.setParam("flightmode/stabModeRoll", cmode) # 1)PID  2)Mellinger
+    while (cf.getParam("flightmode/stabModePitch") != cmode):
+        cf.setParam("flightmode/stabModePitch", cmode) # 1)PID  2)Mellinger 
+        rospy.loginfo("Setting flightmode/stabModePitch = " + str(cmode))
+
+    time.sleep(1)
 
     rate = rospy.Rate(1)
     while (init_ekf and not ekf_initialized and not rospy.is_shutdown()):
