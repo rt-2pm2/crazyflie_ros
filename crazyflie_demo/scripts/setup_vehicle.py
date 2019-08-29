@@ -49,7 +49,7 @@ if __name__ == '__main__':
 
     est = 2
     ctr = 2
-    cmode = 0
+    cmode = 1
 
     # Read the parameters
     cf_id = rospy.get_param('~cf', 'cf1')
