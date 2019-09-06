@@ -57,7 +57,7 @@ if __name__ == '__main__':
     estimator = rospy.get_param('~Estimator', 'EKF')
     controller = rospy.get_param('~Controller', 'Mellinger')
     req_reset = rospy.get_param('~ResEstimator', True)
-    stabMode = rospy.get_param('~stabMode', '0')
+    stabMode = rospy.get_param('~stabMode', '1')
 
     rospy.loginfo("Selecting CF: " + str(cf_id))
     rospy.loginfo('Selecting Commander Level: ' + str(comm_lev))
