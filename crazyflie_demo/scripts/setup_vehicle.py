@@ -37,6 +37,7 @@ def ext_pos_callback(ext_point_stmp):
             rospy.set_param("kalman/initialX", x)
             rospy.set_param("kalman/initialY", y)
             rospy.set_param("kalman/initialZ", z)
+            rospy.sleep(0.5)
             update_params(["kalman/initialX", "kalman/initialY", "kalman/initialZ"])
             
             ekf_initialized = True
@@ -100,9 +101,17 @@ if __name__ == '__main__':
     time.sleep(1)
 
     # If Kalman reset the estimator
-    if (estimator == 'EKF' and req_reset):
-        cf.setParam("kalman/resetEstimation", 1)
-        cf.setParam("kalman/resetEstimation", 0)
+    if (estimator == 'EKF' and req_reset):   
+        rospy.set_param("kalman/resetEstimation", 1)
+        update_params(["kalman/resetEstimation"])
+        rospy.sleep(0.2)
+        update_params(["kalman/resetEstimation"])
+        rospy.sleep(0.5)
+        rospy.set_param("kalman/resetEstimation", 0)
+        update_params(["kalman/resetEstimation"])
+        rospy.sleep(0.2)
+        update_params(["kalman/resetEstimation"])
+        rospy.sleep(0.5)
         init_ekf = True
     
     # Map the controller name to index
@@ -113,9 +122,11 @@ if __name__ == '__main__':
     # Set the controller
     while (cf.getParam("stabilizer/controller") != ctr):
         cf.setParam("stabilizer/controller", ctr) # 1)PID  2)Mellinger
+        update_params(["stabilizer/controller"])
+        rospy.sleep(0.2)
+
     rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/controller")) + 
             " controller")
-    time.sleep(2)
 
     # Setting the flight mode on the Crazyfly
     if (stabMode == 0):
@@ -130,10 +141,14 @@ if __name__ == '__main__':
     while (cf.getParam("flightmode/stabModeRoll") != cmode):
         rospy.loginfo("Setting flightmode/stabModeRoll = " + str(cmode))
         cf.setParam("flightmode/stabModeRoll", cmode) # 1)PID  2)Mellinger
+        update_params(["flightmode/stabModeRoll"])
+        rospy.sleep(0.2)
     while (cf.getParam("flightmode/stabModePitch") != cmode):
         cf.setParam("flightmode/stabModePitch", cmode) # 1)PID  2)Mellinger 
+        update_params(["flightmode/stabModePitch"])
+        rospy.sleep(0.2)
         rospy.loginfo("Setting flightmode/stabModePitch = " + str(cmode))
-
+        
     time.sleep(1)
 
     rate = rospy.Rate(1)
