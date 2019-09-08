@@ -119,8 +119,12 @@ if __name__ == '__main__':
 
     # Setting the flight mode on the Crazyfly
     if (stabMode == 0):
+        # Rates
+        rospy.loginfo("Set Rates Control Mode")
         cmode = 0
     if (stabMode == 1):
+        # Angle
+        rospy.loginfo("Set Angle Control Mode")
         cmode = 1
 
     while (cf.getParam("flightmode/stabModeRoll") != cmode):
