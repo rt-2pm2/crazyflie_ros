@@ -353,7 +353,9 @@ void cmdPositionSetpoint(
   void positionMeasurementChanged(
     const geometry_msgs::PointStamped::ConstPtr& msg)
   {
-    m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z);
+      // Convert the time stamp into a float
+      float time = msg->header.stamp.sec + msg->header.stamp.nsec / 1e9;
+    m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z, time);
     m_sentExternalPosition = true;
   }
 
