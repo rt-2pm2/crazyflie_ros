@@ -41,6 +41,7 @@ def ext_pos_callback(ext_point_stmp):
             update_params(["kalman/initialX", "kalman/initialY", "kalman/initialZ"])
             
             ekf_initialized = True
+            rospy.loginfo("Setup of Vehicle " + cf_id + " Complete!\n")
 
 
 if __name__ == '__main__':
