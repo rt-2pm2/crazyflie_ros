@@ -371,6 +371,7 @@ void cmdPositionSetpoint(
     ros::NodeHandle n;
     n.setCallbackQueue(&m_callback_queue);
 
+    std::cout << "STARTING CRAZYFLIE THREAD..." << std::endl;
     m_subscribeCmdVel = n.subscribe(m_tf_prefix + "/cmd_vel", 1, &CrazyflieROS::cmdVelChanged, this);
     m_subscribeCmdFullState = n.subscribe(m_tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeExternalPosition = n.subscribe(m_tf_prefix + "/external_position", 1, &CrazyflieROS::positionMeasurementChanged, this);
@@ -865,9 +866,9 @@ private:
 class CrazyflieServer
 {
 public:
-  CrazyflieServer()
+  CrazyflieServer(std::string name)
   {
-
+    server_name = name;
   }
 
   void run()
@@ -876,8 +877,8 @@ public:
     ros::CallbackQueue callback_queue;
     n.setCallbackQueue(&callback_queue);
 
-    ros::ServiceServer serviceAdd = n.advertiseService("add_crazyflie", &CrazyflieServer::add_crazyflie, this);
-    ros::ServiceServer serviceRemove = n.advertiseService("remove_crazyflie", &CrazyflieServer::remove_crazyflie, this);
+    ros::ServiceServer serviceAdd = n.advertiseService("/" + server_name + "/add_crazyflie", &CrazyflieServer::add_crazyflie, this);
+    ros::ServiceServer serviceRemove = n.advertiseService("/" + server_name + "/remove_crazyflie", &CrazyflieServer::remove_crazyflie, this);
 
     // // High-level API
     // ros::ServiceServer serviceTakeoff = n.advertiseService("takeoff", &CrazyflieServer::takeoff, this);
@@ -1005,6 +1006,7 @@ private:
   // }
 
 private:
+  std::string server_name;
   std::map<std::string, CrazyflieROS*> m_crazyflies;
 };
 
@@ -1013,9 +1015,12 @@ private:
 
 int main(int argc, char **argv)
 {
+  std::string server_name;
   ros::init(argc, argv, "crazyflie_server");
+  ros::NodeHandle n;
+  n.param<std::string>("name", server_name, "RS1");
 
-  CrazyflieServer cfserver;
+  CrazyflieServer cfserver(server_name);
   cfserver.run();
 
   return 0;

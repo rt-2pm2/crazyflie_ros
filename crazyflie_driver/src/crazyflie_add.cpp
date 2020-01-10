@@ -10,6 +10,7 @@ int main(int argc, char **argv)
   // read paramaters
   std::string uri;
   std::string tf_prefix;
+  std::string server;
   double roll_trim;
   double pitch_trim;
   bool enable_logging;
@@ -23,6 +24,7 @@ int main(int argc, char **argv)
   bool enable_logging_pose;
   bool enable_logging_packets;
 
+  n.getParam("server", server);
   n.getParam("uri", uri);
   n.getParam("tf_prefix", tf_prefix);
   n.param("roll_trim", roll_trim, 0.0);
@@ -40,7 +42,7 @@ int main(int argc, char **argv)
 
 
   ROS_INFO("wait_for_service /add_crazyflie");
-  ros::ServiceClient addCrazyflieService = n.serviceClient<crazyflie_driver::AddCrazyflie>("/add_crazyflie");
+  ros::ServiceClient addCrazyflieService = n.serviceClient<crazyflie_driver::AddCrazyflie>("/" + server + "/add_crazyflie");
   addCrazyflieService.waitForExistence();
   ROS_INFO("found /add_crazyflie");
   crazyflie_driver::AddCrazyflie addCrazyflie;
