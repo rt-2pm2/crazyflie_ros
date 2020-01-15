@@ -1017,8 +1017,8 @@ int main(int argc, char **argv)
 {
   std::string server_name;
   ros::init(argc, argv, "crazyflie_server");
-  ros::NodeHandle n;
-  n.param<std::string>("name", server_name, "RS1");
+  ros::NodeHandle n("~");
+  n.param<std::string>("rs_name", server_name, "RS1");
 
   CrazyflieServer cfserver(server_name);
   cfserver.run();
