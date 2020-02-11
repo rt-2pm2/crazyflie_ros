@@ -20,6 +20,7 @@
 #include "crazyflie_driver/Stop.h"
 #include "crazyflie_driver/Position.h"
 #include "crazyflie_driver/crtpPacket.h"
+#include "crazyflie_driver/AnchorMeas.h"
 #include "crazyflie_cpp/Crazyradio.h"
 #include "crazyflie_cpp/crtp.h"
 #include "std_srvs/Empty.h"
@@ -132,6 +133,7 @@ public:
     , m_subscribeCmdStop()
     , m_subscribeCmdPosition()
     , m_subscribeExternalPosition()
+    , m_subscribeExternalDistance()
     , m_pubImu()
     , m_pubTemp()
     , m_pubMag()
@@ -357,6 +359,19 @@ void cmdPositionSetpoint(
     m_sentExternalPosition = true;
   }
 
+  void distanceMeasurementChanged(
+    const crazyflie_driver::AnchorMeas::ConstPtr& msg)
+  {
+    // The distance measurement contains 
+    // float distance
+    // unsigned char id
+    // float  x, y, z
+    m_cf.sendExternalDistanceUpdate(
+        msg->dist,
+        msg->id,
+        msg->x_anchor, msg->y_anchor, msg->z_anchor);
+  }
+
   void poseMeasurementChanged(
     const geometry_msgs::PoseStamped::ConstPtr& msg)
   {
@@ -376,6 +391,7 @@ void cmdPositionSetpoint(
     m_subscribeCmdFullState = n.subscribe(m_tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeExternalPosition = n.subscribe(m_tf_prefix + "/external_position", 1, &CrazyflieROS::positionMeasurementChanged, this);
    // m_subscribeExternalPose = n.subscribe(m_tf_prefix + "/external_pose", 1, &CrazyflieROS::poseMeasurementChanged, this);
+   m_subscribeExternalDistance = n.subscribe(m_tf_prefix + "/external_distance", 1, &CrazyflieROS::distanceMeasurementChanged, this);
     m_serviceEmergency = n.advertiseService(m_tf_prefix + "/emergency", &CrazyflieROS::emergency, this);
     m_subscribeCmdHover = n.subscribe(m_tf_prefix + "/cmd_hover", 1, &CrazyflieROS::cmdHoverSetpoint, this);
     m_subscribeCmdStop = n.subscribe(m_tf_prefix + "/cmd_stop", 1, &CrazyflieROS::cmdStop, this);
@@ -847,6 +863,7 @@ private:
   ros::Subscriber m_subscribeCmdPosition;
   ros::Subscriber m_subscribeExternalPosition;
   ros::Subscriber m_subscribeExternalPose;
+  ros::Subscriber m_subscribeExternalDistance;
   ros::Publisher m_pubImu;
   ros::Publisher m_pubTemp;
   ros::Publisher m_pubMag;
