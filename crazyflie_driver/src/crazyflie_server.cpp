@@ -98,7 +98,9 @@ public:
     bool enable_logging_pressure,
     bool enable_logging_battery,
     bool enable_logging_pose,
-    bool enable_logging_packets)
+    bool enable_logging_packets,
+    bool enable_provide_position,
+    bool enable_provide_distance)
     : m_tf_prefix(tf_prefix)
     , m_cf(
       link_uri,
@@ -118,6 +120,8 @@ public:
     , m_enable_logging_battery(enable_logging_battery)
     , m_enable_logging_pose(enable_logging_pose)
     , m_enable_logging_packets(enable_logging_packets)
+    , m_enable_provide_position(enable_provide_position)
+    , m_enable_provide_distance(enable_provide_distance)
     , m_serviceEmergency()
     , m_serviceUpdateParams()
     , m_serviceSetGroupMask()
@@ -355,8 +359,10 @@ void cmdPositionSetpoint(
   void positionMeasurementChanged(
     const geometry_msgs::PointStamped::ConstPtr& msg)
   {
-    m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z);
-    m_sentExternalPosition = true;
+    if (m_enable_provide_position) {
+        m_cf.sendExternalPositionUpdate(msg->point.x, msg->point.y, msg->point.z);
+        m_sentExternalPosition = true;
+    }
   }
 
   void distanceMeasurementChanged(
@@ -366,10 +372,12 @@ void cmdPositionSetpoint(
     // float distance
     // unsigned char id
     // float  x, y, z
-    m_cf.sendExternalDistanceUpdate(
-        msg->dist,
-        msg->id,
-        msg->x_anchor, msg->y_anchor, msg->z_anchor);
+    if (m_enable_provide_distance) {
+        m_cf.sendExternalDistanceUpdate(
+            msg->dist,
+            msg->id,
+            msg->x_anchor, msg->y_anchor, msg->z_anchor);
+    }
   }
 
   void poseMeasurementChanged(
@@ -562,6 +570,16 @@ void cmdPositionSetpoint(
       }
 
 
+    }
+
+    if (m_enable_provide_position) {
+        ROS_INFO_NAMED(m_tf_prefix,
+                "Sending Position Measurements to drone...");
+    }
+
+    if (m_enable_provide_distance) {
+        ROS_INFO_NAMED(m_tf_prefix,
+                "Sending Distance Measurements to drone...");
     }
 
     ROS_INFO_NAMED(m_tf_prefix, "Requesting memories...");
@@ -842,6 +860,8 @@ private:
   bool m_enable_logging_battery;
   bool m_enable_logging_pose;
   bool m_enable_logging_packets;
+  bool m_enable_provide_position;
+  bool m_enable_provide_distance;
 
   ros::ServiceServer m_serviceEmergency;
   ros::ServiceServer m_serviceUpdateParams;
@@ -947,7 +967,9 @@ private:
       req.enable_logging_pressure,
       req.enable_logging_battery,
       req.enable_logging_pose,
-      req.enable_logging_packets);
+      req.enable_logging_packets,
+      req.enable_provide_position,
+      req.enable_provide_distance);
 
     m_crazyflies[req.uri] = cf;
 

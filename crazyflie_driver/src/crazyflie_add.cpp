@@ -23,6 +23,8 @@ int main(int argc, char **argv)
   bool enable_logging_battery;
   bool enable_logging_pose;
   bool enable_logging_packets;
+  bool enable_provide_position;
+  bool enable_provide_distance;
 
   n.getParam("server", server);
   n.getParam("uri", uri);
@@ -39,6 +41,8 @@ int main(int argc, char **argv)
   n.param("enable_logging_battery", enable_logging_battery, true);
   n.param("enable_logging_pose", enable_logging_pose, false);
   n.param("enable_logging_packets", enable_logging_packets, true);
+  n.param("enable_provide_position", enable_provide_position, true);
+  n.param("enable_provide_distance", enable_provide_distance, true);
 
 
   ROS_INFO("wait_for_service /add_crazyflie");
@@ -60,6 +64,8 @@ int main(int argc, char **argv)
   addCrazyflie.request.enable_logging_battery = enable_logging_battery;
   addCrazyflie.request.enable_logging_pose = enable_logging_pose;
   addCrazyflie.request.enable_logging_packets = enable_logging_packets;
+  addCrazyflie.request.enable_provide_position = enable_provide_position;
+  addCrazyflie.request.enable_provide_distance = enable_provide_distance;
 
   std::vector<std::string> genericLogTopics;
   n.param("genericLogTopics", genericLogTopics, std::vector<std::string>());
