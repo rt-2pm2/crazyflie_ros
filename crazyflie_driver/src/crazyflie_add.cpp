@@ -44,6 +44,13 @@ int main(int argc, char **argv)
   n.param("enable_provide_position", enable_provide_position, true);
   n.param("enable_provide_distance", enable_provide_distance, true);
 
+  if (enable_provide_position) {
+    ROS_INFO("Streaming absolute position to the drone");
+  }
+
+  if (enable_provide_distance) {
+    ROS_INFO("Streaming simulated anchor measurements to the drone");
+  }
 
   ROS_INFO("wait_for_service /add_crazyflie");
   ros::ServiceClient addCrazyflieService = n.serviceClient<crazyflie_driver::AddCrazyflie>("/" + server + "/add_crazyflie");
