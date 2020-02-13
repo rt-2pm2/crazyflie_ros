@@ -115,12 +115,12 @@ if __name__ == '__main__':
     cf.startTrajectory(0, timescale=1.0)
     t = Thread(target=rep_trajectory, args=(traj,[0.0, 0.5, 1.10], frequency)).start()
 
-    #time.sleep(traj.duration)
+    time.sleep(traj.duration)
  
     #cf.stop()
     rospy.loginfo("Landing")
     #cf.land(targetHeight = 0.05, duration = 2.0)
     #time.sleep(0.1)
-    #cf.land(targetHeight = 0.05, duration = 2.0)
-    #time.sleep(2)
+    cf.land(targetHeight = 0.05, duration = 2.0)
+    time.sleep(2)
 
