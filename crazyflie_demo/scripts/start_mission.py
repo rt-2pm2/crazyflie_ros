@@ -23,11 +23,13 @@ import time
 import uav_trajectory
 from threading import Thread
 from crazyflie_demo.msg import Trajectory 
+from nav_msgs.msg import Odometry
 from tf.transformations import euler_from_matrix
 
 # Trajectory Publisher
-ghost_pub = rospy.Publisher('ghost_trajectory', Trajectory, queue_size=10)
+ghost_pub = rospy.Publisher('ghost_trajectory', Odometry, queue_size=10)
 
+# This was publishing Trajectory messages.
 def rep_trajectory(trajectory, start_position, freq):
         timeSpan = trajectory.duration; 
 
@@ -41,32 +43,32 @@ def rep_trajectory(trajectory, start_position, freq):
         print("Expected end time: ", start_time + timeSpan)
         end_time = start_time + timeSpan
 
-        msg = Trajectory()
+        msg = Odometry()
 
         # Publishing Loop
         while (curr_time < end_time):
             # Evaluate the trajectory
             rep_trj = trajectory.eval(curr_time - start_time)
 
-            msg.px = rep_trj.pos[0]
-            msg.py = rep_trj.pos[1]
-            msg.pz = rep_trj.pos[2]
+            msg.pose.pose.position.x = rep_trj.pos[0]
+            msg.pose.pose.position.y = rep_trj.pos[1]
+            msg.pose.pose.position.z = rep_trj.pos[2]
 
-            msg.vx = rep_trj.vel[0]
-            msg.vy = rep_trj.vel[1]
-            msg.vz = rep_trj.vel[2]
+            msg.twist.twist.linear.x = rep_trj.vel[0]
+            msg.twist.twist.linear.y = rep_trj.vel[1]
+            msg.twist.twist.linear.z = rep_trj.vel[2]
 
-            msg.accx = rep_trj.acc[0]
-            msg.accy = rep_trj.acc[1]
-            msg.accz = rep_trj.acc[2]
+            #msg.accx = rep_trj.acc[0]
+            #msg.accy = rep_trj.acc[1]
+            #msg.accz = rep_trj.acc[2]
 
-            # Conver the Rotation matrix to euler angles
-            R = rep_trj.R
-            (roll, pitch, yaw) = euler_from_matrix(R)
+            ## Conver the Rotation matrix to euler angles
+            #R = rep_trj.R
+            #(roll, pitch, yaw) = euler_from_matrix(R)
 
-            msg.r = roll * 180 / np.pi
-            msg.p = pitch * 180 / np.pi
-            msg.y = yaw * 180 / np.pi
+            #msg.r = roll * 180 / np.pi
+            #msg.p = pitch * 180 / np.pi
+            #msg.y = yaw * 180 / np.pi
 
             # Pubblish the evaluated trajectory
             ghost_pub.publish(msg)
@@ -82,12 +84,12 @@ if __name__ == '__main__':
 
     rospy.loginfo("Starting Node Commander")
 
-    cf = crazyflie.Crazyflie("cf1", "/tf")
+    cf = crazyflie.Crazyflie("cf2", "/tf")
 
     file_name = rospy.search_param('trajectory_file')
     if (file_name):
         trj_file = rospy.get_param(file_name) 
-        print("Trajectory file found! ", trj_file)
+        print("Trajectory file parameter found! ", trj_file)
     else:
         rospy.signal_shutdown("Trjectory file not found!")
 
@@ -101,24 +103,24 @@ if __name__ == '__main__':
     rospy.loginfo("Trajectory duration: " + str(traj.duration))
     time.sleep(3)
 
-    cf.takeoff(targetHeight = 1.1, duration = 4.0)
-    time.sleep(5.0)
+    cf.takeoff(targetHeight = 0.5, duration = 3.0)
+    time.sleep(4.0)
     
-    cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
-    cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
-    time.sleep(3.0)
+    #cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    #cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
+    #time.sleep(3.0)
 
     rospy.loginfo("Starting Trajectory")
-    cf.startTrajectory(0, timescale=1.0)
+    #cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
     t = Thread(target=rep_trajectory, args=(traj,[0.0, 0.5, 1.10], frequency)).start()
 
-    time.sleep(traj.duration / 1.5)
+    #time.sleep(traj.duration)
  
-    cf.stop()
+    #cf.stop()
     rospy.loginfo("Landing")
-    cf.land(targetHeight = 0.05, duration = 2.0)
-    time.sleep(0.1)
-    cf.land(targetHeight = 0.05, duration = 2.0)
-    time.sleep(2)
+    #cf.land(targetHeight = 0.05, duration = 2.0)
+    #time.sleep(0.1)
+    #cf.land(targetHeight = 0.05, duration = 2.0)
+    #time.sleep(2)
 
