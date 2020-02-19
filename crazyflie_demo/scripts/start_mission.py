@@ -23,11 +23,12 @@ import time
 import uav_trajectory
 from threading import Thread
 from crazyflie_demo.msg import Trajectory 
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Vector3 
 from tf.transformations import euler_from_matrix
 
 # Trajectory Publisher
-ghost_pub = rospy.Publisher('ghost_trajectory', Odometry, queue_size=10)
+ghost_pub = rospy.Publisher('cf2/ghost_trajectory', Vector3, queue_size=10)
+
 
 # This was publishing Trajectory messages.
 def rep_trajectory(trajectory, start_position, freq):
@@ -43,46 +44,29 @@ def rep_trajectory(trajectory, start_position, freq):
         print("Expected end time: ", start_time + timeSpan)
         end_time = start_time + timeSpan
 
-        msg = Odometry()
+        msg = Vector3()
 
         # Publishing Loop
         while (curr_time < end_time):
             # Evaluate the trajectory
             rep_trj = trajectory.eval(curr_time - start_time)
 
-            msg.pose.pose.position.x = rep_trj.pos[0]
-            msg.pose.pose.position.y = rep_trj.pos[1]
-            msg.pose.pose.position.z = rep_trj.pos[2]
-
-            msg.twist.twist.linear.x = rep_trj.vel[0]
-            msg.twist.twist.linear.y = rep_trj.vel[1]
-            msg.twist.twist.linear.z = rep_trj.vel[2]
-
-            #msg.accx = rep_trj.acc[0]
-            #msg.accy = rep_trj.acc[1]
-            #msg.accz = rep_trj.acc[2]
-
-            ## Conver the Rotation matrix to euler angles
-            #R = rep_trj.R
-            #(roll, pitch, yaw) = euler_from_matrix(R)
-
-            #msg.r = roll * 180 / np.pi
-            #msg.p = pitch * 180 / np.pi
-            #msg.y = yaw * 180 / np.pi
+            msg.x = rep_trj.pos[0]
+            msg.y = rep_trj.pos[1]
+            msg.z = rep_trj.pos[2]
 
             # Pubblish the evaluated trajectory
             ghost_pub.publish(msg)
 
             # Wait the next loop
-            r.sleep()
             # Take the time
-            curr_time = rospy.get_time()
+            curr_time = curr_time + 0.5
 
 
 if __name__ == '__main__':
-    rospy.init_node('Node_commander')
+    rospy.init_node('Captain')
 
-    rospy.loginfo("Starting Node Commander")
+    rospy.loginfo("Starting Node Captain")
 
     cf = crazyflie.Crazyflie("cf2", "/tf")
 
@@ -94,33 +78,39 @@ if __name__ == '__main__':
         rospy.signal_shutdown("Trjectory file not found!")
 
 
-    frequency = rospy.get_param('freq_ghost', 30.0);
+    frequency = rospy.get_param('freq_ghost', 2.0);
 
     rospy.loginfo("Uploading Trajectory...")
     traj = uav_trajectory.Trajectory()
     traj.loadcsv(trj_file) 
     cf.uploadTrajectory(0, 0, traj)
     rospy.loginfo("Trajectory duration: " + str(traj.duration))
-    time.sleep(3)
+    time.sleep(1)
 
-    cf.takeoff(targetHeight = 0.5, duration = 3.0)
-    time.sleep(4.0)
+    cf.takeoff(targetHeight = 0.5, duration = 2.0)
+    cf.takeoff(targetHeight = 0.5, duration = 2.0)
+    #time.sleep(4.0)
     
     #cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
     #cf.goTo(goal = [0, 0.5, 1.10], yaw=0.0, duration = 2.0, relative = False)
-    #time.sleep(3.0)
+    time.sleep(2.5)
 
     rospy.loginfo("Starting Trajectory")
-    #cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
-    t = Thread(target=rep_trajectory, args=(traj,[0.0, 0.5, 1.10], frequency)).start()
+    cf.startTrajectory(0, timescale=1.0)
+    t = Thread(target=rep_trajectory, args=(traj,[0.0, 0.0, 0.0], frequency)).start()
 
     time.sleep(traj.duration)
- 
-    #cf.stop()
+
+    cf.startTrajectory(0, timescale=1.0)
+    cf.startTrajectory(0, timescale=1.0)
+    cf.startTrajectory(0, timescale=1.0)
+    time.sleep(traj.duration)
+
     rospy.loginfo("Landing")
-    #cf.land(targetHeight = 0.05, duration = 2.0)
-    #time.sleep(0.1)
     cf.land(targetHeight = 0.05, duration = 2.0)
+    time.sleep(0.1)
+    cf.land(targetHeight = 0.0, duration = 2.0)
     time.sleep(2)
+    cf.stop()
 
