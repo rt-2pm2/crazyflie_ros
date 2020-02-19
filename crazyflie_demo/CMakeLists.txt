@@ -6,6 +6,7 @@ project(crazyflie_demo)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
 	message_generation
+    std_msgs
 	roscpp
 	tf
 )
@@ -47,6 +48,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Trajectory.msg
+   ExperimentLog.msg
 #   Message2.msg
 )
 
@@ -67,6 +69,7 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
    DEPENDENCIES
+   std_msgs
    crazyflie_demo
 )
 
