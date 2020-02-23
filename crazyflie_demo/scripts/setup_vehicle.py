@@ -105,12 +105,12 @@ if __name__ == '__main__':
     if (estimator == 'EKF' and req_reset):   
         rospy.set_param("kalman/resetEstimation", 1)
         update_params(["kalman/resetEstimation"])
-        rospy.sleep(0.2)
+        rospy.sleep(0.5)
         update_params(["kalman/resetEstimation"])
         rospy.sleep(0.5)
         rospy.set_param("kalman/resetEstimation", 0)
         update_params(["kalman/resetEstimation"])
-        rospy.sleep(0.2)
+        rospy.sleep(0.5)
         update_params(["kalman/resetEstimation"])
         rospy.sleep(0.5)
         init_ekf = True
