@@ -63,13 +63,24 @@ if __name__ == '__main__':
 
     req_takeoff(cf) 
 
-
-    for (i in range(150)):
+    cf.goTo(goal = [0, 0.2, 0.0], yaw=0.0, duration = 2.0, relative = True)
+    cf.goTo(goal = [0, 0.2, 0.0], yaw=0.0, duration = 2.0, relative = True)
+    for i in range(50):
         if (np.random.rand() > 0.5):
             switch_ctrl_module(cf, 1)
         else:
             switch_ctrl_module(cf, 2)
-        time.sleep(0.02)
+        time.sleep(0.2)
+
+    time.sleep(2.0)
+    cf.goTo(goal = [0, -0.2, 0.0], yaw=0.0, duration = 2.0, relative = True)
+    cf.goTo(goal = [0, -0.2, 0.0], yaw=0.0, duration = 2.0, relative = True)
+    for i in range(50):
+        if (np.random.rand() > 0.5):
+            switch_ctrl_module(cf, 1)
+        else:
+            switch_ctrl_module(cf, 2)
+        time.sleep(0.2)
 
     ####### END MISSION
     req_landing(cf)

@@ -86,13 +86,14 @@ def rep_trajectory(trajectory, start_position, freq):
 def req_takeoff(cf):
     cf.takeoff(targetHeight = 0.5, duration = 2.0)
     cf.takeoff(targetHeight = 0.5, duration = 2.0)
-    time.sleep(2.5)
+    time.sleep(3.0)
 
 def req_start_trj(cf):
     rospy.loginfo("Starting Trajectory")
     cf.startTrajectory(0, timescale=1.0)
     cf.startTrajectory(0, timescale=1.0)
-    time.sleep(traj.duration)
+    time.sleep(0.5)
+    
 
 def switch_mnd_module(cf, flag):
     global exp_msg
@@ -177,7 +178,7 @@ if __name__ == '__main__':
     traj.loadcsv(trj_file)
 
     ## Upload the trajectory file to drone
-#    uploadTrajToDrone(cf, traj)
+    uploadTrajToDrone(cf, traj)
 
     ####### START MISSION
     now_time = rospy.get_rostime()
@@ -185,30 +186,31 @@ if __name__ == '__main__':
     exp_msg.header.stamp.nsecs = now_time.nsecs
     experiment_pub.publish(exp_msg)
 
-#    req_takeoff(cf) 
+    req_takeoff(cf) 
 
     ## Follow Trajectory 1
-#    t = Thread(target=rep_trajectory,
-#            args=(traj,[0.0, 0.0, 0.0], frequency)).start() 
+    req_start_trj(cf) 
+    t = Thread(target=rep_trajectory,
+            args=(traj,[0.0, 0.0, 0.0], frequency)).start() 
+    time.sleep(traj.duration)
 
-#    req_start_trj(cf) 
+    req_start_trj(cf)
 
     ## Enable Distortion
-    rospy.set_param("/Dummy_Anchors/distortion_value", 0.7)
-    
+    rospy.set_param("/Dummy_Anchors/distortion_value", 0.4)
+    time.sleep(3.0)  
     switch_distortion(True)   
-    time.sleep(10)
-    switch_distortion(False)
-    time.sleep(10)
-
     switch_mnd_module(cf, True)   
-    switch_distortion(True)   
-    time.sleep(10)
+    time.sleep(traj.duration - 3.0) 
     switch_distortion(False)
-    time.sleep(10)
+
+    #switch_distortion(True)   
+    #time.sleep(10)
+    #switch_distortion(False)
+    #time.sleep(10)
 
     ####### END MISSION
-#    req_landing(cf)
+    req_landing(cf)
  
-#    cf.stop()
+    cf.stop()
 
