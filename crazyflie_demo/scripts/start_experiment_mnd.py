@@ -58,6 +58,7 @@ def rep_trajectory(trajectory, start_position, freq):
         print("Running at freq. = ", r)
         start_time = rospy.get_time() 
         curr_time = start_time
+        print("Start Position: ", start_position)
         print("Current time: ", curr_time)
         print("Start time: ", start_time)
         print("Expected end time: ", start_time + timeSpan)
@@ -197,10 +198,10 @@ if __name__ == '__main__':
     req_start_trj(cf)
 
     ## Enable Distortion
-    rospy.set_param("/Dummy_Anchors/distortion_value", 0.4)
-    time.sleep(3.0)  
-    switch_distortion(True)   
+    rospy.set_param("/Dummy_Anchors/distortion_value", 1.4)
+    time.sleep(3.0) # After 3 seconds: activate distortion and the module 
     switch_mnd_module(cf, True)   
+    switch_distortion(True)   
     time.sleep(traj.duration - 3.0) 
     switch_distortion(False)
 
