@@ -103,10 +103,12 @@ def switch_mnd_module(cf, flag):
 
     if (flag):
         print("Activating the Malicious Node Detector")
+        print(rospy.get_rostime())
         cf.setParam("mnd_param/activate", 1)
         exp_msg.enabled_module = 1;
     else:
         print("Deactivating the Malicious Node Detector")
+        print(rospy.get_rostime())
         cf.setParam("mnd_param/activate", 0)
         exp_msg.enabled_module = 0;
 
@@ -129,21 +131,24 @@ def set_threshold(cf, value):
     update_params(["mnd_param/abs_threshold"])
 
 
-def switch_distortion(flag, dist_amount=4.4):
+def switch_distortion(flag, dist_amount=0.4):
     global exp_msg
 
     if (flag):
         if (onboard_distortion):
-            print("Enabling Distortion Onboard...")
+            print("Enabling Distortion Onboard:")
+            print(rospy.get_rostime())
             cf.setParam("twr/enable_distortion", 1)
             cf.setParam("twr/dist_amount", dist_amount)
         else:
             print("Enabling Distortion Offboard...")
+            print(rospy.get_rostime())
             rospy.set_param("/Dummy_Anchors/distortion_value", dist_amount)
             rospy.set_param("/Dummy_Anchors/enable_distortion", True)
         exp_msg.enabled_distortion = 1
     else:
         print("Disabling Distortion...")
+        print(rospy.get_rostime())
         if (onboard_distortion):
             cf.setParam("twr/enable_distortion", 0)
         else:
@@ -213,28 +218,28 @@ if __name__ == '__main__':
     # Disable distortion and the onboard filter
     switch_distortion(False)
     switch_mnd_module(cf, False)
-    set_threshold(cf, 100)
+    #set_threshold(cf, 100)
 
-#    req_takeoff(cf, 0.5) 
-    time.sleep(4)
+    req_takeoff(cf, 0.5) 
+    time.sleep(6)
 
     ## Follow Trajectory 1
-#    req_start_trj(cf) 
+    req_start_trj(cf) 
     t = Thread(target=rep_trajectory,
             args=(traj,[0.0, 0.0, 0.0], frequency)).start() 
     time.sleep(traj.duration)
 
-#    req_start_trj(cf)
+    req_start_trj(cf)
 
     ## Enable Distortion
     time.sleep(3.0) # After 3 seconds: activate distortion and the module
-    switch_distortion(True, 20.0)   
+    switch_distortion(True, 13.4)   
     time.sleep(1.0)
     switch_mnd_module(cf, True)
     time.sleep(traj.duration - 4.0) 
 
     ####### END MISSION
- #   req_landing(cf) 
+    req_landing(cf) 
     switch_mnd_module(cf, False)
     switch_distortion(False)
     cf.stop()
