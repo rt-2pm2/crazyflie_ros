@@ -131,7 +131,7 @@ def set_threshold(cf, value):
     update_params(["mnd_param/abs_threshold"])
 
 
-def switch_distortion(flag, dist_amount=0.4):
+def switch_distortion(flag, dist_amount=0.3):
     global exp_msg
 
     if (flag):
@@ -140,6 +140,8 @@ def switch_distortion(flag, dist_amount=0.4):
             print(rospy.get_rostime())
             cf.setParam("twr/enable_distortion", 1)
             cf.setParam("twr/dist_amount", dist_amount)
+            # For recording purposes I do the same for the simulated
+            rospy.set_param("/Dummy_Anchors/enable_distortion", True)
         else:
             print("Enabling Distortion Offboard...")
             print(rospy.get_rostime())
@@ -151,6 +153,8 @@ def switch_distortion(flag, dist_amount=0.4):
         print(rospy.get_rostime())
         if (onboard_distortion):
             cf.setParam("twr/enable_distortion", 0)
+            # For recording purposes I do the same for the simulated
+            rospy.set_param("/Dummy_Anchors/enable_distortion", False)
         else:
             rospy.set_param("/Dummy_Anchors/enable_distortion", False)
 
@@ -171,7 +175,7 @@ def req_landing(cf):
     cf.land(targetHeight = 0.05, duration = 2.0)
     time.sleep(0.1)
     cf.land(targetHeight = 0.0, duration = 2.0)
-    time.sleep(2)
+    time.sleep(6)
 
 def uploadTrajToDrone(cf, traj):
     rospy.loginfo("Uploading Trajectory...")
@@ -218,10 +222,14 @@ if __name__ == '__main__':
     # Disable distortion and the onboard filter
     switch_distortion(False)
     switch_mnd_module(cf, False)
-    #set_threshold(cf, 100)
+
+    if (onboard_distortion):
+        set_threshold(cf, 800.0)
+    else:
+        set_threshold(cf, 0.25)
 
     req_takeoff(cf, 0.5) 
-    time.sleep(6)
+    time.sleep(3)
 
     ## Follow Trajectory 1
     req_start_trj(cf) 
@@ -232,11 +240,18 @@ if __name__ == '__main__':
     req_start_trj(cf)
 
     ## Enable Distortion
-    time.sleep(3.0) # After 3 seconds: activate distortion and the module
-    switch_distortion(True, 13.4)   
-    time.sleep(1.0)
+    time.sleep(3.5) # After 3 seconds: activate distortion and the module
+    print("===============================")
+    time.sleep(0.5)
+
+    if (onboard_distortion):
+        switch_distortion(True, 15.00)
+    else:
+        switch_distortion(True, 0.45)
+
+    time.sleep(0.8)
     switch_mnd_module(cf, True)
-    time.sleep(traj.duration - 4.0) 
+    time.sleep(traj.duration - 5.0) 
 
     ####### END MISSION
     req_landing(cf) 
