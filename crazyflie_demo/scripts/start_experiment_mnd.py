@@ -172,10 +172,10 @@ def switch_distortion(flag, dist_amount=0.3):
 
 def req_landing(cf):
     rospy.loginfo("Landing")
-    cf.land(targetHeight = 0.05, duration = 2.0)
+    cf.land(targetHeight = 0.0, duration = 2.0)
     time.sleep(0.1)
     cf.land(targetHeight = 0.0, duration = 2.0)
-    time.sleep(6)
+    time.sleep(2)
 
 def uploadTrajToDrone(cf, traj):
     rospy.loginfo("Uploading Trajectory...")
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     else:
         set_threshold(cf, 0.25)
 
-    req_takeoff(cf, 0.5) 
+    req_takeoff(cf, 0.3) 
     time.sleep(3)
 
     ## Follow Trajectory 1
@@ -240,19 +240,22 @@ if __name__ == '__main__':
     req_start_trj(cf)
 
     ## Enable Distortion
-    time.sleep(3.5) # After 3 seconds: activate distortion and the module
+    time.sleep(3.0) # After 3 seconds: activate distortion and the module
     print("===============================")
     time.sleep(0.5)
 
     if (onboard_distortion):
-        switch_distortion(True, 15.00)
+        switch_distortion(True, 16.00)
     else:
         switch_distortion(True, 0.45)
 
-    time.sleep(0.8)
+    time.sleep(0.5)
     switch_mnd_module(cf, True)
-    time.sleep(traj.duration - 5.0) 
+    time.sleep(traj.duration) 
 
+    req_start_trj(cf)
+    time.sleep(traj.duration + 1.0)
+    
     ####### END MISSION
     req_landing(cf) 
     switch_mnd_module(cf, False)
