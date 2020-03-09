@@ -39,10 +39,11 @@ experiment_pub = rospy.Publisher('/experiment_switches', ExperimentLog, queue_si
 
 
 # Global Variables
+dist_enable = False
 onboard_distortion = True 
 
 enabled_distortion = 0
-malicious_anchor = 0
+malicious_anchor = 4
 enabled_module = 0
 exp_msg = ExperimentLog()
 
@@ -87,14 +88,15 @@ def rep_trajectory(trajectory, start_position, freq):
 
 
 def req_takeoff(cf, h):
-    cf.takeoff(targetHeight = h, duration = 2.0)
-    cf.takeoff(targetHeight = h, duration = 2.0)
-    time.sleep(3.0)
+    time_ = 1.5
+    cf.takeoff(targetHeight = h, duration = time_)
+    cf.takeoff(targetHeight = h, duration = time_)
+    time.sleep(time_)
 
 def req_start_trj(cf):
     rospy.loginfo("Starting Trajectory")
-    cf.startTrajectory(0, timescale=1.0)
-    cf.startTrajectory(0, timescale=1.0)
+    cf.startTrajectory(0, timescale=1.0, relative=False)
+    cf.startTrajectory(0, timescale=1.0, relative=False)
     time.sleep(0.5)
     
 
@@ -133,12 +135,16 @@ def set_threshold(cf, value):
 
 def switch_distortion(flag, dist_amount=0.3):
     global exp_msg
+    global dist_enable
+    global malicious_anchor
 
     if (flag):
+        dist_enable = True
         if (onboard_distortion):
             print("Enabling Distortion Onboard:")
             print(rospy.get_rostime())
             cf.setParam("twr/enable_distortion", 1)
+            cf.setParam("twr/malicious_id", malicious_anchor)
             cf.setParam("twr/dist_amount", dist_amount)
             # For recording purposes I do the same for the simulated
             rospy.set_param("/Dummy_Anchors/enable_distortion", True)
@@ -149,6 +155,7 @@ def switch_distortion(flag, dist_amount=0.3):
             rospy.set_param("/Dummy_Anchors/enable_distortion", True)
         exp_msg.enabled_distortion = 1
     else:
+        dist_enable = False
         print("Disabling Distortion...")
         print(rospy.get_rostime())
         if (onboard_distortion):
@@ -162,7 +169,13 @@ def switch_distortion(flag, dist_amount=0.3):
 
     update_params(["twr/enable_distortion"])
     update_params(["twr/enable_distortion"])
+
+    update_params(["twr/malicious_id"])
+    update_params(["twr/malicious_id"])
     
+    update_params(["twr/dist_amount"])
+    update_params(["twr/dist_amount"])
+
     exp_msg.header.seq = exp_msg.header.seq + 1
     now_time = rospy.get_rostime()
     exp_msg.header.stamp.secs = now_time.secs
@@ -185,6 +198,52 @@ def uploadTrajToDrone(cf, traj):
     time.sleep(1)
 
     return traj
+
+
+def pieceWiseTrj(cf, distortion=False):
+    _T = 5.0
+     
+    cf.goTo([0.79, -0.7, 0.6], 0.0, _T, relative=False)
+    cf.goTo([0.79, -0.7, 0.6], 0.0, _T, relative=False)
+    cf.goTo([0.79, -0.7, 0.6], 0.0, _T, relative=False)
+    start_time = rospy.get_time()
+    stop_time = start_time +  _T
+    time.sleep(stop_time - rospy.get_time())
+
+    
+    cf.goTo([0.79, 0.3, 0.6], 0.0, _T, relative=False)
+    cf.goTo([0.79, 0.3, 0.6], 0.0, _T, relative=False)
+    cf.goTo([0.79, 0.3, 0.6], 0.0, _T, relative=False) 
+    start_time = rospy.get_time()
+    stop_time = start_time +  _T
+    if (distortion and distortion != dist_enable):
+        time.sleep(1.0)
+        if (onboard_distortion):
+            switch_distortion(True, 15.00)
+        else:
+            switch_distortion(True, 0.45)
+        time.sleep(0.6)
+        switch_mnd_module(cf, True)
+        time.sleep(stop_time - rospy.get_time())
+    else:
+        time.sleep(stop_time - rospy.get_time())
+
+    
+    cf.goTo([0.79, 0.3, 0.3], 0.0, _T, relative=False)
+    cf.goTo([0.79, 0.3, 0.3], 0.0, _T, relative=False)
+    cf.goTo([0.79, 0.3, 0.3], 0.0, _T, relative=False)
+    start_time = rospy.get_time()
+    stop_time = start_time +  _T 
+    time.sleep(stop_time - rospy.get_time())
+
+    
+    cf.goTo([0.79, -0.7, 0.3], 0.0, _T, relative=False)
+    cf.goTo([0.79, -0.7, 0.3], 0.0, _T, relative=False)
+    cf.goTo([0.79, -0.7, 0.3], 0.0, _T, relative=False)
+    start_time = rospy.get_time()
+    stop_time = start_time +  _T 
+    time.sleep(stop_time - rospy.get_time())
+    time.sleep(0.5)
 
 if __name__ == '__main__':
     rospy.init_node('Captain')
@@ -227,38 +286,51 @@ if __name__ == '__main__':
         set_threshold(cf, 800.0)
     else:
         set_threshold(cf, 0.25)
+    time.sleep(0.5)
 
-    req_takeoff(cf, 0.3) 
-    time.sleep(3)
+    req_takeoff(cf, 0.5) 
+
+    time.sleep(1.0)
+
+    cf.goTo([0.79, -0.70, 0.3], 0.0, 5.0, relative=False)
+    cf.goTo([0.79, -0.70, 0.3], 0.0, 5.0, relative=False)
+    time.sleep(5.5)
 
     ## Follow Trajectory 1
-    req_start_trj(cf) 
-    t = Thread(target=rep_trajectory,
-            args=(traj,[0.0, 0.0, 0.0], frequency)).start() 
-    time.sleep(traj.duration)
+    pieceWiseTrj(cf) 
+    #req_start_trj(cf) 
+    #t = Thread(target=rep_trajectory,
+    #        args=(traj,[0.0, 0.0, 0.0], frequency)).start() 
+    #time.sleep(traj.duration)
 
-    req_start_trj(cf)
 
+    # Follow Trajetory 2 and enable distortion
+
+    pieceWiseTrj(cf, True) 
+    #req_start_trj(cf)
     ## Enable Distortion
-    time.sleep(3.0) # After 3 seconds: activate distortion and the module
+    #_dist_delay = 1.0
+    #time.sleep(_dist_delay) # After 3 seconds: activate distortion and the module
     print("===============================")
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
-    if (onboard_distortion):
-        switch_distortion(True, 16.00)
-    else:
-        switch_distortion(True, 0.45)
+#    if (onboard_distortion):
+#        switch_distortion(True, 28.00)
+#    else:
+#        switch_distortion(True, 0.45)
+#    time.sleep(0.5)
+#
+#    switch_mnd_module(cf, True)
 
-    time.sleep(0.5)
-    switch_mnd_module(cf, True)
-    time.sleep(traj.duration) 
+    #time.sleep(traj.duration - _dist_delay) 
 
-    req_start_trj(cf)
-    time.sleep(traj.duration + 1.0)
+    pieceWiseTrj(cf)
+    #req_start_trj(cf)
+    #time.sleep(traj.duration + 1.0)
     
     ####### END MISSION
     req_landing(cf) 
-    switch_mnd_module(cf, False)
     switch_distortion(False)
+    switch_mnd_module(cf, False)
     cf.stop()
 
