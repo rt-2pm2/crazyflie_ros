@@ -93,6 +93,8 @@ if __name__ == '__main__':
         est = 1
     if (estimator == 'USC'):
         est = 3
+    if (estimator == 'DD'):
+        est = 4
     # Set the estimator
     while (cf.getParam("stabilizer/estimator") != est):
         cf.setParam("stabilizer/estimator", est) # 1)Complementary 2)EKF 3)USC
@@ -120,6 +122,8 @@ if __name__ == '__main__':
         ctr = 1
     if (controller == 'Mellinger'):
         ctr = 2
+    if (controller == 'DD'):
+        ctr = 4
     # Set the controller
     while (cf.getParam("stabilizer/controller") != ctr):
         cf.setParam("stabilizer/controller", ctr) # 1)PID  2)Mellinger

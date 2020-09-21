@@ -394,11 +394,11 @@ void cmdPositionSetpoint(
     ros::NodeHandle n;
     n.setCallbackQueue(&m_callback_queue);
 
-    std::cout << "STARTING CRAZYFLIE THREAD..." << std::endl;
+    ROS_INFO_NAMED(m_tf_prefix, "STARTING CRAZYFLIE THREAD...");
     m_subscribeCmdVel = n.subscribe(m_tf_prefix + "/cmd_vel", 1, &CrazyflieROS::cmdVelChanged, this);
     m_subscribeCmdFullState = n.subscribe(m_tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeExternalPosition = n.subscribe(m_tf_prefix + "/external_position", 1, &CrazyflieROS::positionMeasurementChanged, this);
-   // m_subscribeExternalPose = n.subscribe(m_tf_prefix + "/external_pose", 1, &CrazyflieROS::poseMeasurementChanged, this);
+    m_subscribeExternalPose = n.subscribe(m_tf_prefix + "/external_pose", 1, &CrazyflieROS::poseMeasurementChanged, this);
     m_subscribeExternalDistance = n.subscribe(m_tf_prefix + "/external_distance", 1, &CrazyflieROS::distanceMeasurementChanged, this);
     m_serviceEmergency = n.advertiseService(m_tf_prefix + "/emergency", &CrazyflieROS::emergency, this);
     m_subscribeCmdHover = n.subscribe(m_tf_prefix + "/cmd_hover", 1, &CrazyflieROS::cmdHoverSetpoint, this);
@@ -499,7 +499,7 @@ void cmdPositionSetpoint(
       m_cf.setEmptyAckCallback(cb_ack);
 
       ROS_INFO_NAMED(m_tf_prefix, "Requesting Logging variables...");
-      m_cf.requestLogToc();
+      m_cf.requestLogToc(true);
 
       if (m_enable_logging_imu) {
         std::function<void(uint32_t, logImu*)> cb = std::bind(&CrazyflieROS::onImuData, this, std::placeholders::_1, std::placeholders::_2);
