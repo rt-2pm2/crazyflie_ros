@@ -33,6 +33,8 @@
 #include "sensor_msgs/MagneticField.h"
 #include "std_msgs/Float32.h"
 
+#include "crazyflie_driver/Reboot.h"
+
 //#include <regex>
 #include <thread>
 #include <mutex>
@@ -131,6 +133,7 @@ public:
     , m_serviceGoTo()
     , m_serviceUploadTrajectory()
     , m_serviceStartTrajectory()
+    , m_serviceReboot()
     , m_subscribeCmdVel()
     , m_subscribeCmdFullState()
     , m_subscribeCmdHover()
@@ -413,6 +416,8 @@ void cmdPositionSetpoint(
     m_serviceGoTo = n.advertiseService(m_tf_prefix + "/go_to", &CrazyflieROS::goTo, this);
     m_serviceUploadTrajectory = n.advertiseService(m_tf_prefix + "/upload_trajectory", &CrazyflieROS::uploadTrajectory, this);
     m_serviceStartTrajectory = n.advertiseService(m_tf_prefix + "/start_trajectory", &CrazyflieROS::startTrajectory, this);
+
+    m_serviceReboot = n.advertiseService(m_tf_prefix + "/reboot", &CrazyflieROS::reboot, this);
 
     if (m_enable_logging_imu) {
       m_pubImu = n.advertise<sensor_msgs::Imu>(m_tf_prefix + "/imu", 10);
@@ -796,6 +801,15 @@ void cmdPositionSetpoint(
     return true;
   }
 
+  bool reboot(
+    crazyflie_driver::Reboot::Request& req,
+    crazyflie_driver::Reboot::Response& res)
+  {
+    ROS_INFO_NAMED(m_tf_prefix, "Reboot requested");
+    m_cf.reboot();
+    return true;
+  }
+
   bool goTo(
     crazyflie_driver::GoTo::Request& req,
     crazyflie_driver::GoTo::Response& res)
@@ -875,6 +889,7 @@ private:
   ros::ServiceServer m_serviceGoTo;
   ros::ServiceServer m_serviceUploadTrajectory;
   ros::ServiceServer m_serviceStartTrajectory;
+  ros::ServiceServer m_serviceReboot;
 
   ros::Subscriber m_subscribeCmdVel;
   ros::Subscriber m_subscribeCmdFullState;

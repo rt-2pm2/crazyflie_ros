@@ -29,6 +29,8 @@ class Crazyflie:
         self.startTrajectoryService = rospy.ServiceProxy(prefix + "/start_trajectory", StartTrajectory)
         rospy.wait_for_service(prefix + "/update_params")
         self.updateParamsService = rospy.ServiceProxy(prefix + "/update_params", UpdateParams)
+        rospy.wait_for_service(prefix + "/reboot")
+        self.RebootService = rospy.ServiceProxy(prefix + "/reboot", Reboot)
 
     def setGroupMask(self, groupMask):
         self.setGroupMaskService(groupMask)
@@ -45,6 +47,9 @@ class Crazyflie:
     def goTo(self, goal, yaw, duration, relative = False, groupMask = 0):
         gp = arrayToGeometryPoint(goal)
         self.goToService(groupMask, relative, gp, yaw, rospy.Duration.from_sec(duration))
+
+    def reboot(self, groupMask = 0):
+        self.RebootService(groupMask)
 
     def uploadTrajectory(self, trajectoryId, pieceOffset, trajectory):
         pieces = []

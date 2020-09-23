@@ -83,7 +83,7 @@ if __name__ == '__main__':
     rospy.init_node('Captain')
 
     rospy.loginfo("Starting Node Captain")
-    vehicle_name = "cf1"
+    vehicle_name = "cf3"
     
     cf = crazyflie.Crazyflie(vehicle_name, "/tf")
 
@@ -138,13 +138,14 @@ if __name__ == '__main__':
 
     time.sleep(2.0)
 
-    req_takeoff(cf) 
+    #req_takeoff(cf) 
+    cf.reboot()
 
-    tg_pos = [0, 0.2, 0.7]
+    #tg_pos = [0, 0.2, 0.7]
     #cf.goTo(goal = tg_pos, yaw=0.0, duration = 3.0, relative = False)
     
     ####### END MISSION
-    req_landing(cf)
+    #req_landing(cf)
  
-    cf.stop()
+    #cf.stop()
 
