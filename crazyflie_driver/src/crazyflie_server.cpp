@@ -102,7 +102,8 @@ public:
     bool enable_logging_pose,
     bool enable_logging_packets,
     bool enable_provide_position,
-    bool enable_provide_distance)
+    bool enable_provide_distance,
+    bool enable_provide_pose)
     : m_tf_prefix(tf_prefix)
     , m_cf(
       link_uri,
@@ -124,6 +125,7 @@ public:
     , m_enable_logging_packets(enable_logging_packets)
     , m_enable_provide_position(enable_provide_position)
     , m_enable_provide_distance(enable_provide_distance)
+    , m_enable_provide_pose(enable_provide_pose)
     , m_serviceEmergency()
     , m_serviceUpdateParams()
     , m_serviceSetGroupMask()
@@ -386,10 +388,12 @@ void cmdPositionSetpoint(
   void poseMeasurementChanged(
     const geometry_msgs::PoseStamped::ConstPtr& msg)
   {
-    m_cf.sendExternalPoseUpdate(
-      msg->pose.position.x, msg->pose.position.y, msg->pose.position.z,
-      msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
-    m_sentExternalPosition = true;
+      if (m_enable_provide_pose) {
+          m_cf.sendExternalPoseUpdate(
+                  msg->pose.position.x, msg->pose.position.y, msg->pose.position.z,
+                  msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w);
+          m_sentExternalPosition = true;
+      }
   }
 
   void run()
@@ -585,6 +589,11 @@ void cmdPositionSetpoint(
     if (m_enable_provide_distance) {
         ROS_INFO_NAMED(m_tf_prefix,
                 "Sending Distance Measurements to drone...");
+    }
+
+    if (m_enable_provide_pose) {
+        ROS_INFO_NAMED(m_tf_prefix,
+                "Sending Pose Measurements to drone...");
     }
 
     ROS_INFO_NAMED(m_tf_prefix, "Requesting memories...");
@@ -876,6 +885,7 @@ private:
   bool m_enable_logging_packets;
   bool m_enable_provide_position;
   bool m_enable_provide_distance;
+  bool m_enable_provide_pose;
 
   ros::ServiceServer m_serviceEmergency;
   ros::ServiceServer m_serviceUpdateParams;
@@ -984,7 +994,8 @@ private:
       req.enable_logging_pose,
       req.enable_logging_packets,
       req.enable_provide_position,
-      req.enable_provide_distance);
+      req.enable_provide_distance,
+      req.enable_provide_pose);
 
     m_crazyflies[req.uri] = cf;
 

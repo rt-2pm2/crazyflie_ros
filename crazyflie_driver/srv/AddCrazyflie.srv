@@ -15,4 +15,5 @@ bool enable_logging_pose
 bool enable_logging_packets
 bool enable_provide_position
 bool enable_provide_distance
+bool enable_provide_pose
 ---
