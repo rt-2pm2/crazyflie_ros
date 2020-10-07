@@ -124,6 +124,9 @@ if __name__ == '__main__':
         ctr = 2
     if (controller == 'DD'):
         ctr = 4
+    if (controller == 'Ext'):
+        ctr = 5
+
     # Set the controller
     while (cf.getParam("stabilizer/controller") != ctr):
         cf.setParam("stabilizer/controller", ctr) # 1)PID  2)Mellinger

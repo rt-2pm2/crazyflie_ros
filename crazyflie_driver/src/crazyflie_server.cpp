@@ -34,6 +34,7 @@
 #include "std_msgs/Float32.h"
 
 #include "crazyflie_driver/Reboot.h"
+#include "crazyflie_driver/PWM.h"
 
 //#include <regex>
 #include <thread>
@@ -137,6 +138,7 @@ public:
     , m_serviceStartTrajectory()
     , m_serviceReboot()
     , m_subscribeCmdVel()
+    , m_subscribeCmdPWM()
     , m_subscribeCmdFullState()
     , m_subscribeCmdHover()
     , m_subscribeCmdStop()
@@ -327,6 +329,22 @@ void cmdPositionSetpoint(
     }
   }
 
+   void cmdPWMChanged(const crazyflie_driver::PWM::ConstPtr& msg) {
+    if (!m_isEmergency) {
+        uint16_t m0 = std::min<uint16_t>(
+                std::max<float>(msg->pwm0, 0.0), 60000);
+        uint16_t m1 = std::min<uint16_t>(
+                std::max<float>(msg->pwm1, 0.0), 60000);
+        uint16_t m2 = std::min<uint16_t>(
+                std::max<float>(msg->pwm2, 0.0), 60000);
+        uint16_t m3 = std::min<uint16_t>(
+                std::max<float>(msg->pwm3, 0.0), 60000);
+
+        m_cf.sendSetpointLL(m0, m1, m2, m3);
+        m_sentSetpoint = true;
+    }
+  }
+
   void cmdFullStateSetpoint(
     const crazyflie_driver::FullState::ConstPtr& msg)
   {
@@ -403,6 +421,7 @@ void cmdPositionSetpoint(
 
     ROS_INFO_NAMED(m_tf_prefix, "STARTING CRAZYFLIE THREAD...");
     m_subscribeCmdVel = n.subscribe(m_tf_prefix + "/cmd_vel", 1, &CrazyflieROS::cmdVelChanged, this);
+    m_subscribeCmdPWM = n.subscribe(m_tf_prefix + "/cmd_pwm", 1, &CrazyflieROS::cmdPWMChanged, this);
     m_subscribeCmdFullState = n.subscribe(m_tf_prefix + "/cmd_full_state", 1, &CrazyflieROS::cmdFullStateSetpoint, this);
     m_subscribeExternalPosition = n.subscribe(m_tf_prefix + "/external_position", 1, &CrazyflieROS::positionMeasurementChanged, this);
     m_subscribeExternalPose = n.subscribe(m_tf_prefix + "/external_pose", 1, &CrazyflieROS::poseMeasurementChanged, this);
@@ -902,6 +921,7 @@ private:
   ros::ServiceServer m_serviceReboot;
 
   ros::Subscriber m_subscribeCmdVel;
+  ros::Subscriber m_subscribeCmdPWM;
   ros::Subscriber m_subscribeCmdFullState;
   ros::Subscriber m_subscribeCmdHover;
   ros::Subscriber m_subscribeCmdStop;
