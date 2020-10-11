@@ -20,6 +20,24 @@ from geometry_msgs.msg import PointStamped
 ekf_initialized = False;
 init_ekf = False;
 
+def set_ctrl_gains(cf, gains):
+    print('Setting Control Gains...')
+    for (name, k) in gains.items():
+        print(name + " --> " +  str(k))
+        while (cf.getParam("ctrlDD_par/" + name) != k):
+            cf.setParam("ctrlDD_par/" + name, k)
+            update_params(["ctrlDD_par/" + name])
+    print("DONE!\n")
+
+def set_est_gains(cf, gains):
+    print('Setting Estimator Gains...')
+    for (name, k) in gains.items():
+        print(name + " --> " +  str(k))
+        while (cf.getParam("estimatorDD_par/" + name) != k):
+            cf.setParam("estimatorDD_par/" + name, k)
+            update_params(["estimatorDD_par/" + name])
+    print("DONE!\n")
+
 def ext_pos_callback(ext_point_stmp):
     global ekf_initialized
     global init_ekf
@@ -74,12 +92,14 @@ if __name__ == '__main__':
     rospy.Subscriber(ext_pos_topic, PointStamped, ext_pos_callback)
 
     # Create CF object
+    rospy.sleep(1.0)
     cf = crazyflie.Crazyflie("/" + cf_id, "/tf")
 
     rospy.wait_for_service('update_params')
     rospy.loginfo("found update_params service")
     update_params = rospy.ServiceProxy('update_params', UpdateParams)
 
+    rospy.sleep(1.0)
     # Select the controller level
     while (cf.getParam("commander/enHighLevel") != comm_lev):
         cf.setParam("commander/enHighLevel", comm_lev)
@@ -91,13 +111,41 @@ if __name__ == '__main__':
         est = 2
     if (estimator == 'CMP'):
         est = 1
-    if (estimator == 'USC'):
-        est = 3
     if (estimator == 'DD'):
-        est = 4
+        est = 3
+
+    if (estimator == 'DD'):
+        EstimationGains = {
+                'K_x': 0.005, 
+                'K_x_d': 0.1,  
+                'K_y': 0.005,
+                'K_y_d': 0.1,  
+                'K_a2d0': 0.002,
+                'K_a2d1': 0.002,
+                'K_a2d2': 0.002,
+                'K_a2d3': 0.002,
+                'K_b2d0': 0.0001,
+                'K_b2d1': 0.0001,
+                'K_b2d2': 0.0001,
+                'K_b2d3': 0.0001,
+                'K_b2d6': 0.0001,
+                'K_b2d7': 0.0001,
+                'K_b2d8': 0.0001,
+                'K_b2d9': 0.0001,
+                'K_b2d10': 0.0001,
+                'K_b2d11': 0.0001,
+                'K_b2d12': 0.0001,
+                'K_b2d13': 0.0001,
+                'K_b2d14': 0.0001,
+                'K_b2d15': 0.0001,
+                }
+        set_est_gains(cf, EstimationGains)
+        time.sleep(1.0)
+
+
     # Set the estimator
     while (cf.getParam("stabilizer/estimator") != est):
-        cf.setParam("stabilizer/estimator", est) # 1)Complementary 2)EKF 3)USC
+        cf.setParam("stabilizer/estimator", est)
 
     rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/estimator")) + 
             " estimator")
@@ -124,8 +172,24 @@ if __name__ == '__main__':
         ctr = 2
     if (controller == 'DD'):
         ctr = 4
-    if (controller == 'Ext'):
+    if (controller == 'EXT' or controller == "Ext"):
         ctr = 5
+
+
+    if (controller == 'DD'):
+        ControlGains = {
+                'Kxy': -4.0,
+                'Kxy_d': -4.0,
+                'Kz': -25.0,
+                'Kz_d': -10.0,
+                'Katt': -16.0,
+                'Katt_d': -8.0,
+                'Kyaw': 34.0,
+                'Kyaw_d': 12.0
+        }
+        set_ctrl_gains(cf, ControlGains)
+        time.sleep(1.0)
+
 
     # Set the controller
     while (cf.getParam("stabilizer/controller") != ctr):
@@ -136,26 +200,30 @@ if __name__ == '__main__':
     rospy.loginfo("Correctly set " + str(cf.getParam("stabilizer/controller")) + 
             " controller")
 
-    # Setting the flight mode on the Crazyfly
-    if (stabMode == 0):
-        # Rates
-        rospy.loginfo("Set Rates Control Mode")
-        cmode = 0
-    if (stabMode == 1):
-        # Angle
-        rospy.loginfo("Set Angle Control Mode")
-        cmode = 1
+    
+    if ctr != 5:
+        # Setting the flight mode on the Crazyfly
+        if (stabMode == 0):
+            # Rates
+            rospy.loginfo("Set Rates Control Mode")
+            cmode = 0
+        if (stabMode == 1):
+            # Angle
+            rospy.loginfo("Set Angle Control Mode")
+            cmode = 1
 
-    while (cf.getParam("flightmode/stabModeRoll") != cmode):
-        rospy.loginfo("Setting flightmode/stabModeRoll = " + str(cmode))
-        cf.setParam("flightmode/stabModeRoll", cmode) # 1)PID  2)Mellinger
-        update_params(["flightmode/stabModeRoll"])
-        rospy.sleep(0.2)
-    while (cf.getParam("flightmode/stabModePitch") != cmode):
-        cf.setParam("flightmode/stabModePitch", cmode) # 1)PID  2)Mellinger 
-        update_params(["flightmode/stabModePitch"])
-        rospy.sleep(0.2)
-        rospy.loginfo("Setting flightmode/stabModePitch = " + str(cmode))
+        while (cf.getParam("flightmode/stabModeRoll") != cmode):
+            rospy.loginfo("Setting flightmode/stabModeRoll = " + str(cmode))
+            cf.setParam("flightmode/stabModeRoll", cmode)
+            update_params(["flightmode/stabModeRoll"])
+            rospy.sleep(0.2)
+        while (cf.getParam("flightmode/stabModePitch") != cmode):
+            cf.setParam("flightmode/stabModePitch", cmode) 
+            update_params(["flightmode/stabModePitch"])
+            rospy.sleep(0.2)
+            rospy.loginfo("Setting flightmode/stabModePitch = " + str(cmode))
+
+
         
     time.sleep(1)
 
