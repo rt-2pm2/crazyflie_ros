@@ -1,6 +1,9 @@
 [submodule "crazyflie_cpp"]
 	path = crazyflie_cpp
 	url = https://github.com/rt-2pm2/crazyflie_cpp.git
+	branch = cyphy
 [submodule "crazyflie_tools"]
 	path = crazyflie_tools
 	url = https://github.com/rt-2pm2/crazyflie_tools.git
+	branch = master
+	update = merge
