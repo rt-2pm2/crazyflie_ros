@@ -216,11 +216,11 @@ if __name__ == '__main__':
             rospy.loginfo("Setting flightmode/stabModeRoll = " + str(cmode))
             cf.setParam("flightmode/stabModeRoll", cmode)
             update_params(["flightmode/stabModeRoll"])
-            rospy.sleep(0.2)
+            rospy.sleep(0.5)
         while (cf.getParam("flightmode/stabModePitch") != cmode):
             cf.setParam("flightmode/stabModePitch", cmode) 
             update_params(["flightmode/stabModePitch"])
-            rospy.sleep(0.2)
+            rospy.sleep(0.5)
             rospy.loginfo("Setting flightmode/stabModePitch = " + str(cmode))
 
 
