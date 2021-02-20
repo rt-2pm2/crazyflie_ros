@@ -29,6 +29,15 @@ def set_ctrl_gains(cf, gains):
             update_params(["ctrlDD_par/" + name])
     print("DONE!\n")
 
+def set_mellinger_gains(cf, gains):
+    print('Setting Geometric Control Gains...')
+    for (name, k) in gains.items():
+        print(name + " --> " +  str(k))
+        while (cf.getParam("ctrlMel/" + name) != k):
+            cf.setParam("ctrlMel/" + name, k)
+            update_params(["ctrlMel/" + name])
+    print("DONE!\n")
+
 def set_est_gains(cf, gains):
     print('Setting Estimator Gains...')
     for (name, k) in gains.items():
@@ -170,6 +179,14 @@ if __name__ == '__main__':
         ctr = 1
     if (controller == 'Mellinger'):
         ctr = 2
+        gains__ = {
+                'kR_xy': 7000,
+                'kw_xy': 20000
+                }
+        set_mellinger_gains(cf, gains__)
+        pass
+        time.sleep(0.5)
+
     if (controller == 'DD'):
         ctr = 4
     if (controller == 'EXT' or controller == "Ext"):
