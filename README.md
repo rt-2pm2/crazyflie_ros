@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/whoenig/crazyflie_ros.svg?branch=master)](https://travis-ci.org/whoenig/crazyflie_ros)
-
 crazyflie_ros
 =============
 
